@@ -3,13 +3,19 @@ import mido
 import fluidsynth
 import threading
 
+class MidiListener:
+
+    def __init__(self, channel: int, callback: callable):
+        self.channel = channel
+        self.callback = callback
+
 class MidiInputDevice(ABC):
 
     def __init__ (self):
         pass
 
     @abstractmethod
-    def add_listener (self, callback):
+    def add_listener (self, listener: MidiListener):
         pass
 
     @abstractmethod
@@ -21,8 +27,13 @@ class MidiOutputDevice(ABC):
     def __init__ (self):
         pass
 
-    def bind (self, indev):
-        indev.add_listener(lambda msg : self.send(msg))
+    def bind (self, indev, inchannel=-1, outchannel=-1):
+        indev.add_listener(MidiListener(inchannel, lambda msg : self.callback(msg, outchannel)))
+
+    def callback(self, msg, outchannel):
+        if outchannel >= 0:
+            msg.channel = outchannel
+        self.send(msg)
     
     @abstractmethod
     def send (self, msg):
@@ -48,11 +59,12 @@ class PortInputDevice(MidiInputDevice):
     def listen_loop (self):
         while self.running:
             msg = self.port.receive()
-            for l in self.listeners:
-                l(msg)
+            for listener in self.listeners:
+                if listener.channel < 0 or msg.channel == listener.channel:
+                    listener.callback(msg)
 
-    def add_listener (self, callback):
-        self.listeners.append(callback)
+    def add_listener (self, listener: MidiListener):
+        self.listeners.append(listener)
 
     def close (self):
         running = False
@@ -84,6 +96,9 @@ class SynthOutputDevice(MidiOutputDevice):
     def load_sf(self, file: str):
         return self.synth.sfload(file)
 
+    def select_sf(self, sfid: int, channel: int):
+        self.synth.sfont_select(channel, sfid)
+
     def send (self, msg: mido.Message):
         print("Recieved message ", msg)
         if msg.type == 'note_on':
@@ -91,7 +106,7 @@ class SynthOutputDevice(MidiOutputDevice):
         elif msg.type == 'note_off':
             self.synth.noteoff(msg.channel, msg.note)
         elif msg.type == 'program_change':
-            self.synth.program_select(msg.channel, msg.program, 0, 0)
+            self.synth.program_change(msg.channel, msg.program)
         elif msg.type == 'control_change':
             self.synth.cc(msg.channel, msg.control, msg.value)
         elif msg.type == 'pitchwheel':
