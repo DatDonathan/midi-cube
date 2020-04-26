@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import mido
+import fluidsynth
 import threading
 
 class MidiInputDevice(ABC):
@@ -74,6 +75,26 @@ class PortOutputDevice(MidiOutputDevice):
     def __str__(self):
         return self.port.name
 
+class SynthOutputDevice(MidiOutputDevice):
+    def __init__(self):
+        self.synth = fluidsynth.Synth()
+    
+    def send (self, msg):
+        if msg.type == 'note_on':
+            self.synth.noteon(msg.channel, msg.note, msg.velocity)
+        elif msg.type == 'note_off':
+            self.synth.noteoff(msg.channel, msg.note)
+        elif msg.type == 'program_change':
+            self.synth.program_select(msg.channel, msg.program, 0, 0)
+        elif msg.type == 'control_change':
+            self.synth.cc(msg.channel, msg.control, msg.value)
+        elif msg.type == 'pitchwheel':
+            self.synth.pitch_bend(msg.channel, msg.pitch)
+        else:
+            print('Unrecognized message type')
+
+    def close (self):
+        self.synth.delete()
 
 class MidiCube:
 
