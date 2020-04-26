@@ -149,4 +149,5 @@ class MidiCube:
                 outport.close()
             except:
                 pass
+
             
