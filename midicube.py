@@ -52,7 +52,7 @@ class PortInputDevice(MidiInputDevice):
                 l(msg)
 
     def add_listener (self, callback):
-        self.listeners.append(callback);
+        self.listeners.append(callback)
 
     def close (self):
         running = False
@@ -77,9 +77,15 @@ class PortOutputDevice(MidiOutputDevice):
 
 class SynthOutputDevice(MidiOutputDevice):
     def __init__(self):
+        print(fluidsynth)
         self.synth = fluidsynth.Synth()
+        self.synth.start('alsa')
     
-    def send (self, msg):
+    def load_sf(self, file: str):
+        return self.synth.sfload(file)
+
+    def send (self, msg: mido.Message):
+        print("Recieved message ", msg)
         if msg.type == 'note_on':
             self.synth.noteon(msg.channel, msg.note, msg.velocity)
         elif msg.type == 'note_off':
@@ -91,10 +97,13 @@ class SynthOutputDevice(MidiOutputDevice):
         elif msg.type == 'pitchwheel':
             self.synth.pitch_bend(msg.channel, msg.pitch)
         else:
-            print('Unrecognized message type')
+            print('Unrecognized message type:', msg)
 
     def close (self):
         self.synth.delete()
+    
+    def __str__ (self):
+        return "FluidSynth Sythesizer"
 
 class MidiCube:
 
@@ -125,4 +134,4 @@ class MidiCube:
                 outport.close()
             except:
                 pass
-        
+            
