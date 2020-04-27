@@ -152,7 +152,7 @@ class MidiCube:
                 pass
 
     def create_menu (self):
-        options = [midicube.menu.SimpleMenuOption(None, "Bind Devices", ""), midicube.menu.SimpleMenuOption(None, "Set Up Devices", "")]
-        menu = midicube.menu.Menu(options)
+        options = [midicube.menu.SimpleMenuOption(lambda : None, "Bind Devices", ""), midicube.menu.SimpleMenuOption(lambda : None, "Set Up Devices", "")]
+        menu = midicube.menu.OptionMenu(options)
         return menu
             

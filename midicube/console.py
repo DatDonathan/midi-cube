@@ -22,12 +22,12 @@ class ConsoleMenuView:
             for i in range(self.vpadding):
                 print('|', ''.center(self.textlen + self.hpadding * 2 + 2), '|')
             #Title
-            print('|', ''.center(self.hpadding), self.controller.curr_option().get_title().center(self.textlen), ''.center(self.hpadding), '|')
+            print('|', ''.center(self.hpadding), self.controller.menu.get_title().center(self.textlen), ''.center(self.hpadding), '|')
             #Vertical Padding
             for i in range(self.vpadding):
                 print('|', ''.center(self.textlen + self.vpadding * 2 + 2), '|')
             #Value
-            print('|', ''.center(self.hpadding), self.controller.curr_option().get_value().center(self.textlen), ''.center(self.hpadding), '|')
+            print('|', ''.center(self.hpadding), self.controller.menu.get_value().center(self.textlen), ''.center(self.hpadding), '|')
             #Vertical Padding
             for i in range(self.vpadding):
                 print('|', ''.center(self.textlen + self.hpadding * 2 + 2), '|')
