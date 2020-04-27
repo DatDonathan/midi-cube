@@ -71,12 +71,8 @@ class MenuController:
             self.menu = nextm
             self.option_index = 0
 
-    def exit(self):
+    def menu_return(self):
         if len(self.history) > 0:
             entry = self.history.pop()
             self.option_index = entry.option_index
             self.menu = entry.menu
-
-
-
-    
