@@ -11,24 +11,47 @@ class MenuOption(ABC):
     def __init__(self):
         pass
 
-    def enter():
+    @abstractmethod
+    def enter(self):
         return None
 
     @abstractmethod
-    def increase():
+    def increase(self):
         pass
 
     @abstractmethod
-    def decrease():
+    def decrease(self):
         pass
 
     @abstractmethod
-    def get_title():
+    def get_title(self):
         return "Title"
 
     @abstractmethod
-    def get_value():
+    def get_value(self):
         return "Value"
+
+class SimpleMenuOption(MenuOption):
+
+    def __init__(self, next_menu: Menu, title: str, value: str):
+        self.next_menu = next_menu
+        self.title = title
+        self.value = value
+
+    def enter(self):
+        return self.next_menu
+    
+    def get_title(self):
+        return self.title
+    
+    def get_value(self):
+        return self.value
+
+    def increase(self):
+        pass
+
+    def decrease(self):
+        pass
 
 class MenuHistoryEntry:
 
@@ -38,10 +61,10 @@ class MenuHistoryEntry:
 
 class MenuController:
 
-    def __init__(menu: Menu):
+    def __init__(self, menu: Menu):
         self.menu = menu
         self.history = []
-        self.option_index
+        self.option_index = 0
 
     def scroll_left(self):
         self.option_index -= 1
@@ -65,7 +88,7 @@ class MenuController:
     def enter(self):
         nextm = self.curr_option().enter()
         if (nextm == None):
-            self.exit()
+            self.menu_return()
         else:
             self.history.push(MenuHistoryEntry(self.menu, self.option_index))
             self.menu = nextm

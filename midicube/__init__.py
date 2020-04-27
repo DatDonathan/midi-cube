@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import mido
 import fluidsynth
 import threading
+import midicube.menu
 
 class MidiListener:
 
@@ -150,4 +151,8 @@ class MidiCube:
             except:
                 pass
 
+    def create_menu (self):
+        options = [midicube.menu.SimpleMenuOption(None, "Bind Devices", ""), midicube.menu.SimpleMenuOption(None, "Set Up Devices", "")]
+        menu = midicube.menu.Menu(options)
+        return menu
             
