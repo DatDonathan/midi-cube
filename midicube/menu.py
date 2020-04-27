@@ -11,6 +11,9 @@ class MenuOption(ABC):
     def __init__(self):
         pass
 
+    def enter():
+        return None
+
     @abstractmethod
     def increase():
         pass
@@ -58,6 +61,21 @@ class MenuController:
 
     def decrease(self):
         self.curr_option().decrease()
+
+    def enter(self):
+        nextm = self.curr_option().enter()
+        if (nextm == None):
+            self.exit()
+        else:
+            self.history.push(MenuHistoryEntry(self.menu, self.option_index))
+            self.menu = nextm
+            self.option_index = 0
+
+    def exit(self):
+        if len(self.history) > 0:
+            entry = self.history.pop()
+            self.option_index = entry.option_index
+            self.menu = entry.menu
 
 
 
