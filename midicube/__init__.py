@@ -44,6 +44,10 @@ class MidiOutputDevice(ABC):
     def close (self):
         pass
 
+    @abstractmethod
+    def create_menu():
+        return None
+
 class PortInputDevice(MidiInputDevice):
 
     def __init__(self, port):
@@ -80,14 +84,26 @@ class PortOutputDevice(MidiOutputDevice):
     def __str__(self):
         return self.port.name
 
+    def create_menu():
+        return None
+
+class SoundFontEntry:
+
+    def __init__(self, name, sfid):
+        self.name = name
+        self.sfid = sfid
+
 class SynthOutputDevice(MidiOutputDevice):
     def __init__(self):
         print(fluidsynth)
-        self.synth = fluidsynth.Synth()
+        self.synth = fluidsynth.Synth(gain=1)
         self.synth.start('alsa')
+        self.soundfonts = []
     
     def load_sf(self, file: str):
-        return self.synth.sfload(file)
+        sfid = self.synth.sfload(file)
+        self.soundfonts.append(SoundFontEntry(file, sfid))
+        return sfid
 
     def select_sf(self, sfid: int, channel: int):
         self.synth.sfont_select(channel, sfid)
@@ -112,6 +128,13 @@ class SynthOutputDevice(MidiOutputDevice):
     
     def __str__ (self):
         return "FluidSynth Sythesizer"
+
+    def create_menu():
+        options = []
+        for sf in self.soundfonts:
+            values = []
+            #TODO
+        return None
 
 class MidiCube:
 
@@ -147,7 +170,7 @@ class MidiCube:
         #Bind device menu
 
         #Option list
-        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(lambda : None, "Set Up Devices", "")]
+        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Set Up Devices", "")]
         menu = midicube.menu.OptionMenu(options)
         return menu
 
@@ -163,3 +186,12 @@ class MidiCube:
         out_channel = midicube.menu.ValueMenuOption(enter, "Output Channel", range(-1, 16))
         #Menu
         return midicube.menu.OptionMenu([in_device, out_device, in_channel, out_channel])
+
+    def __setup_device_menu(self):
+        #Callback
+        def enter ():
+            return device.curr_value().create_menu()
+        #Options
+        device = midicube.menu.ValueMenuOption(enter, "Device", self.output)
+        #Menu
+        return midicube.menu.OptionMenu([device])
