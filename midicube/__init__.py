@@ -50,25 +50,17 @@ class PortInputDevice(MidiInputDevice):
         super()
         self.port = port
         self.listeners = []
-        self.running = True
-        self.thread = threading.Thread(target=self.listen_loop, args=())
+        self.port.callback = self.port_callback
 
-    def init(self):
-        self.thread.start()
-        return self
-
-    def listen_loop (self):
-        while self.running:
-            msg = self.port.receive()
-            for listener in self.listeners:
-                if listener.channel < 0 or msg.channel == listener.channel:
-                    listener.callback(msg)
+    def port_callback (self, msg):
+        for listener in self.listeners:
+            if listener.channel < 0 or msg.channel == listener.channel:
+                listener.callback(msg)
 
     def add_listener (self, listener: MidiListener):
         self.listeners.append(listener)
 
     def close (self):
-        running = False
         self.port.close()
 
     def __str__(self):
@@ -134,7 +126,7 @@ class MidiCube:
     def load_devices (self):
         for name in mido.get_input_names():
             device = mido.open_input(name)
-            self.inputs.append(PortInputDevice(device).init())
+            self.inputs.append(PortInputDevice(device))
         for name in mido.get_output_names():
             device = mido.open_output(name)
             self.outputs.append(PortOutputDevice(device))
@@ -152,7 +144,22 @@ class MidiCube:
                 pass
 
     def create_menu (self):
-        options = [midicube.menu.SimpleMenuOption(lambda : None, "Bind Devices", ""), midicube.menu.SimpleMenuOption(lambda : None, "Set Up Devices", "")]
+        #Bind device menu
+
+        #Option list
+        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(lambda : None, "Set Up Devices", "")]
         menu = midicube.menu.OptionMenu(options)
         return menu
-            
+
+    def __bind_device_menu(self):
+        #Callback
+        def enter ():
+            out_device.curr_value().bind(in_device.curr_value(), in_channel.curr_value(), out_channel.curr_value())
+            return None
+        #Options
+        in_device = midicube.menu.ValueMenuOption(enter, "Input Device", self.inputs)
+        out_device = midicube.menu.ValueMenuOption(enter, "Output Device", self.outputs)
+        in_channel = midicube.menu.ValueMenuOption(enter, "Input Channel", range(-1, 16))
+        out_channel = midicube.menu.ValueMenuOption(enter, "Output Channel", range(-1, 16))
+        #Menu
+        return midicube.menu.OptionMenu([in_device, out_device, in_channel, out_channel])

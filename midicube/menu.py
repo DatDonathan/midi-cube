@@ -82,6 +82,36 @@ class SimpleMenuOption(MenuOption):
     def decrease(self):
         pass
 
+class ValueMenuOption(MenuOption):
+
+    def __init__(self, next_menu: callable, title: str, values):
+        self.next_menu = next_menu
+        self.title = title
+        self.values = values
+        self.value_index = 0
+
+    def enter(self):
+        return self.next_menu()
+    
+    def get_title(self):
+        return self.title
+    
+    def get_value(self):
+        return str(self.curr_value())
+
+    def increase(self):
+        self.value_index += 1
+        if self.value_index >= len(self.values):
+            self.value_index = 0
+
+    def decrease(self):
+        self.value_index -= 1
+        if self.value_index < 0:
+            self.value_index = len(self.values) - 1
+
+    def curr_value(self):
+        return self.values[self.value_index]
+
 class OptionMenu (Menu):
 
     def __init__(self, options=[]):
@@ -119,7 +149,7 @@ class OptionMenu (Menu):
 
 class MenuHistoryEntry:
 
-    def __init__(menu: Menu):
+    def __init__(self, menu: Menu):
         self.menu = menu
 
 class MenuController:
@@ -145,12 +175,11 @@ class MenuController:
         if (nextm == None):
             self.menu_return()
         else:
-            self.history.push(MenuHistoryEntry(self.menu))
+            self.history.append(MenuHistoryEntry(self.menu))
             self.menu = nextm
             self.option_index = 0
 
     def menu_return(self):
         if len(self.history) > 0:
             entry = self.history.pop()
-            self.option_index = entry.option_index
             self.menu = entry.menu

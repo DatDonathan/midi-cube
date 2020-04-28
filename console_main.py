@@ -12,10 +12,12 @@ def main ():
         #Create Synth
         synth = midicube.SynthOutputDevice()
         id = synth.load_sf("sounds/FMSynthesis1.40.sf2")
+        hammond_id = synth.load_sf("sounds/HedOrgan-B3-Presets-V84d.sf2")
         #Set up synth (Will be removed later)
         synth.select_sf(9, id)
+        synth.select_sf(0, hammond_id)
         synth.send(mido.Message('program_change', channel=9, program=0))
-        synth.send(mido.Message('control_change', channel=9, control=11, value=127))
+        synth.send(mido.Message('program_change', channel=0, program=0))
         cube.outputs.append(synth)
 
         #Open menu
