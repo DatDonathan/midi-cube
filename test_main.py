@@ -8,6 +8,7 @@ def main ():
         synth = midicube.SynthOutputDevice()
         id = synth.load_sf("sounds/FMSynthesis1.40.sf2")
         print(id)
+        synth.select_sf(0, id)
         synth.select_sf(9, id)
         synth.send(mido.Message('program_change', channel=9, program=0))
         synth.send(mido.Message('control_change', channel=9, control=11, value=127))
