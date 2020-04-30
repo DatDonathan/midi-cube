@@ -82,7 +82,7 @@ class PortOutputDevice(MidiOutputDevice):
     def __str__(self):
         return self.port.name
 
-    def create_menu():
+    def create_menu(self):
         return None
 
 class MidiCube:

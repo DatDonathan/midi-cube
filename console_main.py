@@ -3,6 +3,7 @@ import midicube
 import midicube.menu
 import midicube.console
 import midicube.synth
+import glob
 
 def main ():
     #Create cube
@@ -12,10 +13,12 @@ def main ():
         cube.load_devices()
         #Create Synth
         synth = midicube.synth.SynthOutputDevice()
-        sfid = synth.load_sf("sounds/FMSynthesis1.40.sf2")
+        #Load sf
+        for f in glob.glob("sounds/*.sf2"):
+            synth.load_sf(f)
         #Set up synth (Will be removed later)
-        synth.select_sf(sfid, 0)
-        synth.select_sf(sfid, 9)
+        synth.select_sf(1, 0)
+        synth.select_sf(1, 9)
         synth.send(mido.Message('program_change', channel=0, program=0))
         synth.send(mido.Message('program_change', channel=9, program=0))
         cube.outputs.append(synth)
