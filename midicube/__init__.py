@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 import mido
-import fluidsynth
-import threading
 import midicube.menu
 
 class MidiListener:
@@ -85,55 +83,6 @@ class PortOutputDevice(MidiOutputDevice):
         return self.port.name
 
     def create_menu():
-        return None
-
-class SoundFontEntry:
-
-    def __init__(self, name, sfid):
-        self.name = name
-        self.sfid = sfid
-
-class SynthOutputDevice(MidiOutputDevice):
-    def __init__(self):
-        print(fluidsynth)
-        self.synth = fluidsynth.Synth(gain=1)
-        self.synth.start('alsa')
-        self.soundfonts = []
-    
-    def load_sf(self, file: str):
-        sfid = self.synth.sfload(file)
-        self.soundfonts.append(SoundFontEntry(file, sfid))
-        return sfid
-
-    def select_sf(self, sfid: int, channel: int):
-        self.synth.sfont_select(channel, sfid)
-
-    def send (self, msg: mido.Message):
-        print("Recieved message ", msg)
-        if msg.type == 'note_on':
-            self.synth.noteon(msg.channel, msg.note, msg.velocity)
-        elif msg.type == 'note_off':
-            self.synth.noteoff(msg.channel, msg.note)
-        elif msg.type == 'program_change':
-            self.synth.program_change(msg.channel, msg.program)
-        elif msg.type == 'control_change':
-            self.synth.cc(msg.channel, msg.control, msg.value)
-        elif msg.type == 'pitchwheel':
-            self.synth.pitch_bend(msg.channel, msg.pitch)
-        else:
-            print('Unrecognized message type:', msg)
-
-    def close (self):
-        self.synth.delete()
-    
-    def __str__ (self):
-        return "FluidSynth Sythesizer"
-
-    def create_menu():
-        options = []
-        for sf in self.soundfonts:
-            values = []
-            #TODO
         return None
 
 class MidiCube:

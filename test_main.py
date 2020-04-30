@@ -1,11 +1,12 @@
 import midicube
+import midicube.synth
 import mido
 
 def main ():
     cube = midicube.MidiCube([], [])
     try:
         cube.load_devices()
-        synth = midicube.SynthOutputDevice()
+        synth = midicube.synth.SynthOutputDevice()
         id = synth.load_sf("sounds/FMSynthesis1.40.sf2")
         print(id)
         synth.select_sf(0, id)

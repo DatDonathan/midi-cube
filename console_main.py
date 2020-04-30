@@ -2,6 +2,7 @@ import mido
 import midicube
 import midicube.menu
 import midicube.console
+import midicube.synth
 
 def main ():
     #Create cube
@@ -10,7 +11,7 @@ def main ():
         #Load Devices
         cube.load_devices()
         #Create Synth
-        synth = midicube.SynthOutputDevice()
+        synth = midicube.synth.SynthOutputDevice()
         sfid = synth.load_sf("sounds/FMSynthesis1.40.sf2")
         #Set up synth (Will be removed later)
         synth.select_sf(sfid, 0)
