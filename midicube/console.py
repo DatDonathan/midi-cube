@@ -34,7 +34,7 @@ class ConsoleMenuView:
             #Bottom line
             print('+', ''.center(self.textlen + self.hpadding * 2 + 2, '-'), '+')
             #Input
-            print("Enter l/r to scroll, +/- minus to change the value, e to enter, r to return and q to quit")
+            print("Enter l/r to scroll, +/- minus to change the value, e to enter, b to return and q to quit")
             i = input()
             if i == 'l':
                 self.controller.scroll_left()
@@ -46,7 +46,7 @@ class ConsoleMenuView:
                 self.controller.decrease()
             elif i == 'e':
                 self.controller.enter()
-            elif i == 'r':
+            elif i == 'b':
                 self.controller.menu_return()
             elif i == 'q':
                 running = False

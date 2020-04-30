@@ -119,7 +119,7 @@ class MidiCube:
         #Bind device menu
 
         #Option list
-        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Set Up Devices", "")]
+        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__setup_device_menu, "Set Up Devices", "")]
         menu = midicube.menu.OptionMenu(options)
         return menu
 
@@ -141,6 +141,6 @@ class MidiCube:
         def enter ():
             return device.curr_value().create_menu()
         #Options
-        device = midicube.menu.ValueMenuOption(enter, "Device", self.output)
+        device = midicube.menu.ValueMenuOption(enter, "Device", self.outputs)
         #Menu
         return midicube.menu.OptionMenu([device])
