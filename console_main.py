@@ -17,10 +17,8 @@ def main ():
         for f in glob.glob("sounds/*.sf2"):
             synth.load_sf(f)
         #Set up synth (Will be removed later)
-        synth.select_sf(1, 0)
-        synth.select_sf(1, 9)
-        synth.send(mido.Message('program_change', channel=0, program=0))
-        synth.send(mido.Message('program_change', channel=9, program=0))
+        synth.program_select(0, 1, 0, 0)
+
         cube.outputs.append(synth)
 
         #Open menu

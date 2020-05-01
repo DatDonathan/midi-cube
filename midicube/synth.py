@@ -22,9 +22,15 @@ class SynthOutputDevice(midicube.MidiOutputDevice):
         self.soundfonts.append(SoundFontEntry(file, sfid))
         return sfid
 
-    def select_sf(self, sfid: int, channel: int):
+    def select_sf(self, channel: int, sfid: int):
         self.synth.sfont_select(channel, sfid)
     
+    def bank_change(self, channel: int, bank: int):
+            self.synth.bank_select(channel, bank)
+    
+    def program_change(self, channel: int, program: int):
+            self.synth.program_change(channel, program)
+
     def sound_name(self, channel: int):
         return self.synth.channel_info(channel)[3].decode('utf-8')
     
@@ -42,6 +48,7 @@ class SynthOutputDevice(midicube.MidiOutputDevice):
 
     def send (self, msg: mido.Message):
         print("Recieved message ", msg)
+        print(str(self.synth.channel_info(msg.channel)))
         if msg.type == 'note_on':
             self.synth.noteon(msg.channel, msg.note, msg.velocity)
         elif msg.type == 'note_off':
@@ -65,13 +72,14 @@ class SynthOutputDevice(midicube.MidiOutputDevice):
     def create_menu(self):
         #Sounds
         def create_sound_menu(channel: int):
+            print("opening menu for channel ", str(channel))
             options = [SynthSoundFontOption(channel, self), SynthBankOption(channel, self), SynthProgramOption(channel, self)]
             return midicube.menu.OptionMenu(options)
         
         #Channel
         options = []
         for channel in range(16):
-            options.append(midicube.menu.SimpleMenuOption(lambda : create_sound_menu(channel), "Select a Channel", str(channel)))
+            options.append(midicube.menu.SimpleMenuOption(lambda ch = channel: create_sound_menu(ch), "Select a Channel", str(channel)))
                 
         return midicube.menu.OptionMenu(options)
 
