@@ -74,6 +74,7 @@ class PortOutputDevice(MidiOutputDevice):
         self.port = port
     
     def send (self, msg):
+        print("Recieved message ", msg)
         self.port.send(msg)
 
     def close (self):

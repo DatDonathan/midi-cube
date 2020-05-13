@@ -14,7 +14,11 @@ class SynthOutputDevice(midicube.MidiOutputDevice):
     def __init__(self):
         print(fluidsynth)
         self.synth = fluidsynth.Synth(gain=1)
-        self.synth.start('alsa')
+        #fluidsynth.fluid_settings_setnum(self.synth.settings, b'synth.audio-period-size', 64)
+        #fluidsynth.fluid_settings_setnum(self.synth.settings, b'synth.audio-periods', 4)
+        fluidsynth.fluid_settings_setstr(self.synth.settings, b'audio.driver', b'jack')
+        fluidsynth.fluid_settings_setint(self.synth.settings, b'audio.jack.autoconnect', 1)
+        self.synth.start('jack')
         self.soundfonts = []
     
     def load_sf(self, file: str):
