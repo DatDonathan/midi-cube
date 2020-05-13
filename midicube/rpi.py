@@ -19,6 +19,11 @@ class RaspberryPiMenuView:
         lcd = RPLCD.CharLCD(cols=16, rows=2, pin_rs=37, pin_e=35, pins_data[33, 31, 29, 23])
         def update_display(func):
             func()
+            lcd.clear()
+            lcd.cursor_pos = (0, 0)
+            lcd.write_string(self.controller.get_title())
+            lcd.cursor_pos = (1, 0)
+            lcd.write_string(self.controller.get_value())
         left_button = gpiozero.Button(self.left_pin)
         right_button = gpiozero.Button(self.right_pin)
         enter_button = gpiozero.Button(self.ente_button)
