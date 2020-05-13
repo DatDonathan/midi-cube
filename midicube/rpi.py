@@ -40,7 +40,7 @@ class RaspberryPiMenuView:
         enter_button.when_held = lambda : update_display(lambda : self.controller.enter())
         return_button.when_activated = lambda : update_display(lambda : self.controller.menu_return())
         return_button.when_held = lambda : update_display(lambda : self.controller.menu_return())
-        increase_button.when_activated = lambda : update_display(lambda : self.controller.increase))
+        increase_button.when_activated = lambda : update_display(lambda : self.controller.increase())
         increase_button.when_held = lambda : update_display(lambda : self.controller.increase())
         decrease_button.when_activated = lambda : update_display(lambda : self.controller.decrease())
         decrease_button.when_held = lambda : update_display(lambda : self.controller.decrease())
