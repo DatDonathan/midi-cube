@@ -27,10 +27,10 @@ class RaspberryPiMenuView:
             lcd.write_string(elf.controller.get_value().center(16, '0')[:16]+ '\r\n')
         left_button = gpiozero.Button(self.left_pin)
         right_button = gpiozero.Button(self.right_pin)
-        enter_button = gpiozero.Button(self.ente_button)
+        enter_button = gpiozero.Button(self.enter_pin)
         return_button = gpiozero.Button(self.return_pin)
         increase_button = gpiozero.Button(self.increase_pin)
-        decrease_button = gpiozero.Button(self.decrease_button)
+        decrease_button = gpiozero.Button(self.decrease_pin)
 
         left_button.when_activated = lambda : update_display(lambda : self.controller.scroll_left())
         left_button.when_held = lambda : update_display(lambda : self.controller.scroll_left())
