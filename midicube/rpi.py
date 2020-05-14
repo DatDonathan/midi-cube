@@ -20,11 +20,11 @@ class RaspberryPiMenuView:
         self.lcd = RPLCD.CharLCD(numbering_mode = RPi.GPIO.BCM, cols=16, rows=2, pin_rs=26, pin_e=19, pins_data = [13, 6, 5, 11])
         def update_display(func):
             func()
-            lcd.clear()
-            lcd.cursor_pos = (0, 0)
-            lcd.write_string(self.controller.get_title().center(16)[:16]
-            lcd.cursor_pos = (1, 0)
-            lcd.write_string(elf.controller.get_value().center(16)[:16])
+            self.lcd.clear()
+            self.lcd.cursor_pos = (0, 0)
+            self.lcd.write_string(self.controller.get_title().center(16)[:16]
+            self.lcd.cursor_pos = (1, 0)
+            self.lcd.write_string(elf.controller.get_value().center(16)[:16])
         self.left_button = gpiozero.Button(self.left_pin)
         self.right_button = gpiozero.Button(self.right_pin)
         self.enter_button = gpiozero.Button(self.enter_pin)
