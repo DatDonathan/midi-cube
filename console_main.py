@@ -7,7 +7,7 @@ import glob
 
 def main ():
     #Create cube
-    cube = midicube.MidiCube([], [])
+    cube = midicube.MidiCube()
     try:
         #Load Devices
         cube.load_devices()

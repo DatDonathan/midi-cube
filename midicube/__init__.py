@@ -21,6 +21,10 @@ class MidiInputDevice(ABC):
     def close (self):
         pass
 
+    @abstractmethod
+    def get_identifier(self):
+        return None
+
 class MidiOutputDevice(ABC):
 
     def __init__ (self):
@@ -43,7 +47,11 @@ class MidiOutputDevice(ABC):
         pass
 
     @abstractmethod
-    def create_menu():
+    def create_menu(self):
+        return None
+    
+    @abstractmethod
+    def get_identifier(self):
         return None
 
 class PortInputDevice(MidiInputDevice):
@@ -67,6 +75,9 @@ class PortInputDevice(MidiInputDevice):
 
     def __str__(self):
         return self.port.name
+    
+    def get_identifier(self):
+        return self.port.name
 
 class PortOutputDevice(MidiOutputDevice):
 
@@ -86,31 +97,57 @@ class PortOutputDevice(MidiOutputDevice):
     def create_menu(self):
         return None
 
+    def get_identifier(self):
+        return self.port.name
+
+class DeviceBinding:
+
+    def __init__(self, input_id, output_id, input_channel = -1, output_channel = -1):
+        self.input_id = input_id
+        self.output_id = output_id
+        self.input_channel = input_channel
+        self.output_channel = output_channel
+
+    def apply (msg, cube, inport: MidiInputDevice):
+        outport = cube.outputs[self.output_id]
+        if outport != None and inport.get_identifier() == self.input_id and (self.input_channel < 0 or msg.channel == self.input_channel):
+            if self.output_channel >= 0:
+                msg.channel = self.output_channel
+            listener.callback(msg)
+
+
 class MidiCube:
 
-    def __init__(self, inputs, outputs):
-        self.inputs = inputs
-        self.outputs = outputs
-        if self.inputs == None:
-            self.inputs = []
-        if self.outputs == None:
-            self.outputs = []
+    def __init__(self):
+        self.inputs = {}
+        self.outputs = {}
+        self.bindings = []
+    
+    def add_input(self, device: MidiInputDevice):
+        self.inputs[device.get_identifier()] = device
+        #Add Binding callback
+        def callback(msg: mido.Message):
+            for binding in bindings:
+                binding.apply(msg.copy(), self, device)
+
+    def add_output(self, device: MidiOutputDevice):
+        self.outputs[device.get_identifier()] = device
     
     def load_devices (self):
         for name in mido.get_input_names():
             device = mido.open_input(name)
-            self.inputs.append(PortInputDevice(device))
+            self.add_input(PortInputDevice(device))
         for name in mido.get_output_names():
             device = mido.open_output(name)
-            self.outputs.append(PortOutputDevice(device))
+            self.add_output(PortOutputDevice(device))
 
     def close (self):
-        for inport in self.inputs:
+        for key, inport in self.inputs.items():
             try:
                 inport.close()
             except:
                 pass
-        for outport in self.outputs:
+        for key, outport in self.outputs.items():
             try:
                 outport.close()
             except:

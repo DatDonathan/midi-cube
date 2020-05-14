@@ -71,7 +71,7 @@ class SynthOutputDevice(midicube.MidiOutputDevice):
         self.synth.delete()
     
     def __str__ (self):
-        return "FluidSynth Sythesizer"
+        return "FluidSynth"
 
     def create_menu(self):
         #Sounds
@@ -86,6 +86,9 @@ class SynthOutputDevice(midicube.MidiOutputDevice):
             options.append(midicube.menu.SimpleMenuOption(lambda ch = channel: create_sound_menu(ch), "Select a Channel", str(channel)))
                 
         return midicube.menu.OptionMenu(options)
+    
+    def get_identifier(self):
+        return "FluidSynth"
 
 class SynthSoundFontOption(midicube.menu.MenuOption):
 
