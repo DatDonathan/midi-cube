@@ -29,14 +29,6 @@ class MidiOutputDevice(ABC):
 
     def __init__ (self):
         pass
-
-    def bind (self, indev, inchannel=-1, outchannel=-1):
-        indev.add_listener(MidiListener(inchannel, lambda msg : self.callback(msg, outchannel)))
-
-    def callback(self, msg, outchannel):
-        if outchannel >= 0:
-            msg.channel = outchannel
-        self.send(msg)
     
     @abstractmethod
     def send (self, msg):
@@ -108,12 +100,12 @@ class DeviceBinding:
         self.input_channel = input_channel
         self.output_channel = output_channel
 
-    def apply (msg, cube, inport: MidiInputDevice):
+    def apply (self, msg: mido.Message, cube, inport: MidiInputDevice):
         outport = cube.outputs[self.output_id]
         if outport != None and inport.get_identifier() == self.input_id and (self.input_channel < 0 or msg.channel == self.input_channel):
             if self.output_channel >= 0:
                 msg.channel = self.output_channel
-            listener.callback(msg)
+            outport.send(msg)
 
 
 class MidiCube:
@@ -127,8 +119,9 @@ class MidiCube:
         self.inputs[device.get_identifier()] = device
         #Add Binding callback
         def callback(msg: mido.Message):
-            for binding in bindings:
+            for binding in self.bindings:
                 binding.apply(msg.copy(), self, device)
+        device.add_listener(MidiListener(-1, callback))
 
     def add_output(self, device: MidiOutputDevice):
         self.outputs[device.get_identifier()] = device
@@ -154,8 +147,6 @@ class MidiCube:
                 pass
 
     def create_menu (self):
-        #Bind device menu
-
         #Option list
         options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__setup_device_menu, "Set Up Devices", "")]
         menu = midicube.menu.OptionMenu(options)
@@ -164,11 +155,12 @@ class MidiCube:
     def __bind_device_menu(self):
         #Callback
         def enter ():
-            out_device.curr_value().bind(in_device.curr_value(), in_channel.curr_value(), out_channel.curr_value())
+            self.bindings.append(DeviceBinding(in_device.curr_value(), out_device.curr_value(), in_channel.curr_value(), out_channel.curr_value()))
+            #out_device.curr_value().bind(in_device.curr_value(), in_channel.curr_value(), out_channel.curr_value())
             return None
         #Options
-        in_device = midicube.menu.ValueMenuOption(enter, "Input Device", self.inputs)
-        out_device = midicube.menu.ValueMenuOption(enter, "Output Device", self.outputs)
+        in_device = midicube.menu.ValueMenuOption(enter, "Input Device", [*self.inputs.keys()])
+        out_device = midicube.menu.ValueMenuOption(enter, "Output Device", [*self.outputs.keys()])
         in_channel = midicube.menu.ValueMenuOption(enter, "Input Channel", range(-1, 16))
         out_channel = midicube.menu.ValueMenuOption(enter, "Output Channel", range(-1, 16))
         #Menu

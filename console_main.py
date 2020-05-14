@@ -19,7 +19,7 @@ def main ():
         #Set up synth (Will be removed later)
         synth.program_select(0, 1, 0, 0)
 
-        cube.outputs.append(synth)
+        cube.add_output(synth)
 
         #Open menu
         controller = midicube.menu.MenuController(cube.create_menu())
