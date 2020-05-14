@@ -22,7 +22,7 @@ class RaspberryPiMenuView:
             func()
             self.lcd.clear()
             self.lcd.cursor_pos = (0, 0)
-            self.lcd.write_string(self.controller.get_title().center(16)[:16]
+            self.lcd.write_string(self.controller.get_title().center(16)[:16])
             self.lcd.cursor_pos = (1, 0)
             self.lcd.write_string(elf.controller.get_value().center(16)[:16])
         self.left_button = gpiozero.Button(self.left_pin)
