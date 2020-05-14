@@ -171,6 +171,6 @@ class MidiCube:
         def enter ():
             return device.curr_value().create_menu()
         #Options
-        device = midicube.menu.ValueMenuOption(enter, "Device", self.outputs)
+        device = midicube.menu.ValueMenuOption(enter, "Device", [*self.outputs.values()])
         #Menu
         return midicube.menu.OptionMenu([device])
