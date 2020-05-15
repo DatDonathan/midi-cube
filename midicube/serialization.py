@@ -20,7 +20,7 @@ def deserialize (string: str, clazz):
 def list_to_dicts(ls):
     dicts = []
     for item in ls:
-        dicts.append(item.__to_dict())
+        dicts.append(item.__to_dict__())
     return dicts
 
 def list_from_dicts(dicts, clazz):

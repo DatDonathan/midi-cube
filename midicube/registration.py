@@ -1,5 +1,6 @@
 from midicube.devices import *
 import midicube.serialization as serialization
+import copy
 
 class DeviceBinding(serialization.Serializable):
 
@@ -32,12 +33,15 @@ class Registration(serialization.Serializable):
         self.bindings = []
     
     def __to_dict__(self):
-        return {'name': name, 'bindings': serialization.list_to_dicts(self.bindings)}
+        return {'name': self.name, 'bindings': serialization.list_to_dicts(self.bindings)}
     
     def __from_dict__(dict):
         reg = Registration(dict['name'])
         reg.bindings = serialization.list_from_dicts(dict['bindings'], DeviceBinding)
         return reg
+    
+    def __str__(self):
+        return self.name
 
 class RegistrationManager():
 
@@ -45,11 +49,11 @@ class RegistrationManager():
         self.registrations = []
         self.cur_reg = Registration()
     
-    def select(reg: Registration):
+    def select(self, reg: Registration):
         self.cur_reg = copy.deepcopy(reg)
     
     def save(self):
         return {'registrations': serialization.list_to_dicts(self.registrations)}
     
     def load(self, dict):
-        bindings = serialization.list_from_dicts(dict['bindings'])
+        self.registrations = serialization.list_from_dicts(dict['registrations'], Registration)

@@ -58,6 +58,7 @@ class MidiCube:
 
     def init(self):
         self.pers_mgr.load(self)
+        print("Loaded Registrations")
 
     def close (self):
         for key, inport in self.inputs.items():
@@ -71,10 +72,11 @@ class MidiCube:
             except:
                 pass
         self.pers_mgr.save(self)
+        print("Saved registrations!")
 
     def create_menu (self):
         #Option list
-        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__setup_device_menu, "Set Up Devices", ""), midicube.menu.SimpleMenuOption(self.__delete_binding_menu, "Delete Bindings", "")]
+        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__setup_device_menu, "Set Up Devices", ""), midicube.menu.SimpleMenuOption(self.__delete_binding_menu, "Delete Bindings", ""), midicube.menu.SimpleMenuOption(self.__registration_menu, "Registrations", "")]
         menu = midicube.menu.OptionMenu(options)
         return menu
 
@@ -104,8 +106,25 @@ class MidiCube:
     def __delete_binding_menu(self):
         #Callback
         def enter ():
-            self.reg().bindings.remove(binding.curr_value())
+            if binding.curr_value() != None:
+                self.reg().bindings.remove(binding.curr_value())
+            return None
         #Options
         binding = midicube.menu.ValueMenuOption(enter, "Delete Bindings", self.reg().bindings)
         #Menu
         return midicube.menu.OptionMenu([binding])
+    
+    def __registration_menu(self):
+        #Callbacks
+        def select_reg():
+            self.reg_mgr.select(registration.curr_value())
+            return None
+        def save_reg():
+            self.reg_mgr.registrations.append(self.reg())
+            return None
+        #Options
+        registration = midicube.menu.ValueMenuOption(select_reg, "Select Registration", self.reg_mgr.registrations)
+        save = midicube.menu.SimpleMenuOption(save_reg, "Save Registration", "")
+        #Menu
+        return midicube.menu.OptionMenu([registration, save])
+            

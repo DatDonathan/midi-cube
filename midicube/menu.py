@@ -110,6 +110,8 @@ class ValueMenuOption(MenuOption):
             self.value_index = len(self.values) - 1
 
     def curr_value(self):
+        if self.value_index >= len(self.values):
+            return None
         return self.values[self.value_index]
 
 class OptionMenu (Menu):
