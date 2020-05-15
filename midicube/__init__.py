@@ -94,7 +94,7 @@ class PortOutputDevice(MidiOutputDevice):
 
 class DeviceBinding:
 
-    def __init__(self, input_id, output_id, input_channel = -1, output_channel = -1):
+    def __init__(self, input_id: str, output_id: str, input_channel: int = -1, output_channel: int = -1):
         self.input_id = input_id
         self.output_id = output_id
         self.input_channel = input_channel
@@ -107,6 +107,8 @@ class DeviceBinding:
                 msg.channel = self.output_channel
             outport.send(msg)
 
+    def __str__(self):
+        return str(self.input_channel) + " " + self.input_id + ":" + str(self.output_channel) + " " + self.output_id
 
 class MidiCube:
 
@@ -148,7 +150,7 @@ class MidiCube:
 
     def create_menu (self):
         #Option list
-        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__setup_device_menu, "Set Up Devices", "")]
+        options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__setup_device_menu, "Set Up Devices", ""), midicube.menu.SimpleMenuOption(self.__delete_binding_menu, "Delete Bindings", "")]
         menu = midicube.menu.OptionMenu(options)
         return menu
 
@@ -174,3 +176,12 @@ class MidiCube:
         device = midicube.menu.ValueMenuOption(enter, "Device", [*self.outputs.values()])
         #Menu
         return midicube.menu.OptionMenu([device])
+
+    def __delete_binding_menu(self):
+        #Callback
+        def enter ():
+            self.bindings.remove(binding.curr_value())
+        #Options
+        binding = midicube.menu.ValueMenuOption(enter, "Delete Bindings", self.bindings)
+        #Menu
+        return midicube.menu.OptionMenu([binding])
