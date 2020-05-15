@@ -2,14 +2,37 @@ import mido
 import midicube.menu
 from midicube.devices import *
 from midicube.registration import *
+import os
+import os.path
+import json
 
+class PersistenceManager():
+
+    def __init__(self, directory = './data', reg_file='registrations.json'):
+        self.directory = directory
+        self.reg_file = reg_file
+    
+    def load(self, cube):
+        os.makedirs(self.directory, exist_ok=True)
+        #Registrations
+        reg_file = self.directory + '/' + self.reg_file
+        if os.path.isfile(reg_file):
+            with open(reg_file, 'r') as file:
+                cube.reg_mgr.load(json.loads(file.read()))
+
+    def save(self, cube):
+        os.makedirs(self.directory, exist_ok=True)
+        #Registrations
+        with open(self.directory + '/' + self.reg_file, 'w') as file:
+            file.write(json.dumps(cube.reg_mgr.save()))
 
 class MidiCube:
 
-    def __init__(self):
+    def __init__(self, pers_mgr = PersistenceManager()):
         self.inputs = {}
         self.outputs = {}
         self.reg_mgr = RegistrationManager()
+        self.pers_mgr = pers_mgr
 
     def reg(self):
         return self.reg_mgr.cur_reg
@@ -33,6 +56,9 @@ class MidiCube:
             device = mido.open_output(name)
             self.add_output(PortOutputDevice(device))
 
+    def init(self):
+        self.pers_mgr.load(self)
+
     def close (self):
         for key, inport in self.inputs.items():
             try:
@@ -44,6 +70,7 @@ class MidiCube:
                 outport.close()
             except:
                 pass
+        self.pers_mgr.save(self)
 
     def create_menu (self):
         #Option list

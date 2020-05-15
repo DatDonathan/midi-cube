@@ -21,6 +21,9 @@ def main ():
 
         cube.add_output(synth)
 
+        #Init
+        cube.init()
+
         #Open menu
         controller = midicube.menu.MenuController(cube.create_menu())
         view = midicube.rpi.RaspberryPiMenuView(controller)
