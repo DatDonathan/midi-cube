@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import mido
 import midicube.menu
+import copy
 
 class MidiListener:
 
@@ -110,18 +111,35 @@ class DeviceBinding:
     def __str__(self):
         return str(self.input_channel) + " " + self.input_id + ":" + str(self.output_channel) + " " + self.output_id
 
+class Registration:
+
+    def __init__(self):
+        self.bindings = []
+    
+class RegistrationManager:
+
+    def __init__(self):
+        self.registrations = []
+        self.cur_reg = Registration()
+    
+    def select(reg: Registration):
+        self.cur_reg = copy.deepcopy(reg)
+
 class MidiCube:
 
     def __init__(self):
         self.inputs = {}
         self.outputs = {}
-        self.bindings = []
+        self.reg_mgr = RegistrationManager()
+
+    def reg(self):
+        return self.reg_mgr.cur_reg
     
     def add_input(self, device: MidiInputDevice):
         self.inputs[device.get_identifier()] = device
         #Add Binding callback
         def callback(msg: mido.Message):
-            for binding in self.bindings:
+            for binding in self.reg().bindings:
                 binding.apply(msg.copy(), self, device)
         device.add_listener(MidiListener(-1, callback))
 
@@ -157,7 +175,7 @@ class MidiCube:
     def __bind_device_menu(self):
         #Callback
         def enter ():
-            self.bindings.append(DeviceBinding(in_device.curr_value(), out_device.curr_value(), in_channel.curr_value(), out_channel.curr_value()))
+            self.reg().bindings.append(DeviceBinding(in_device.curr_value(), out_device.curr_value(), in_channel.curr_value(), out_channel.curr_value()))
             #out_device.curr_value().bind(in_device.curr_value(), in_channel.curr_value(), out_channel.curr_value())
             return None
         #Options
@@ -180,8 +198,8 @@ class MidiCube:
     def __delete_binding_menu(self):
         #Callback
         def enter ():
-            self.bindings.remove(binding.curr_value())
+            self.reg().bindings.remove(binding.curr_value())
         #Options
-        binding = midicube.menu.ValueMenuOption(enter, "Delete Bindings", self.bindings)
+        binding = midicube.menu.ValueMenuOption(enter, "Delete Bindings", self.reg().bindings)
         #Menu
         return midicube.menu.OptionMenu([binding])
