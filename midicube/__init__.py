@@ -46,7 +46,9 @@ class MidiCube:
         device.add_listener(MidiListener(-1, callback))
 
     def add_output(self, device: MidiOutputDevice):
+        device.init(self)
         self.outputs[device.get_identifier()] = device
+        print('Added output: ' + device.get_identifier())
     
     def load_devices (self):
         for name in mido.get_input_names():
@@ -127,4 +129,4 @@ class MidiCube:
         save = midicube.menu.SimpleMenuOption(save_reg, "Save Registration", "")
         #Menu
         return midicube.menu.OptionMenu([registration, save])
-            
+    

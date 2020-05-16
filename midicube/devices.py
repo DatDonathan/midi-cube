@@ -95,3 +95,6 @@ class PortOutputDevice(MidiOutputDevice):
 
     def get_identifier(self):
         return self.port.name
+    
+    def init(self, cube):
+        pass

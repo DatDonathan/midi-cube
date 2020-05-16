@@ -3,6 +3,8 @@ import midicube.menu
 import midicube.serialization as serialization
 import pyo
 import mido
+import glob
+import pathlib
 
 class DrumKit(serialization.Serializable):
 
@@ -12,21 +14,29 @@ class DrumKit(serialization.Serializable):
         self.dir = '.'
     
     def sound(self, note):
-        if self.sounds[note] != None:
+        if note in self.sounds:
             return self.dir + '/' + self.sounds[note]
         return None
     
     def __from_dict__(dict):
         kit = DrumKit()
-        for key, value in dict:
+        print(dict)
+        kit.name = dict['name']
+        sounds = dict['sounds']
+        for key, value in sounds.items():
             kit.sounds[int(key)] = value
         return kit
     
     def __to_dict__(self):
         dict = {}
-        for key, value in self.sounds:
-            dict[str(key)] = value
+        dict['name'] = self.name
+        dict['sounds'] = {}
+        for key, value in self.sounds.items():
+            dict['sounds'][str(key)] = value
         return dict
+
+    def __str__(self):
+        return self.name
 
 class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
 
@@ -41,8 +51,21 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         return None
 
     def init(self, cube):
+        #Load drumkits
         self.dir = cube.pers_mgr.directory + '/drumkits'
-        self.server = pyo.Server()
+        for f in glob.glob(self.dir + '/*/*.json'):
+            print(f)
+            path = pathlib.Path(f)
+            try:
+                with open(f, 'r') as file:
+                    drumkit = serialization.deserialize(file.read(), DrumKit)
+                    drumkit.dir = pathlib.Path(path.parent).name
+                    self.drumkits.append(drumkit)
+            except IOError:
+                print("Failed to load drumkit ", f, "!")
+        print(self.drumkits)
+        #Server
+        self.server = pyo.Server(audio='jack').boot()
         self.server.start()
         pass
 
@@ -57,7 +80,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
                 sound = drumkit.sound(msg.note)
                 if sound != None:
                     soundPath = self.dir + '/' + sound
-                    pyo.SfPlayer(soundPath, mul=msg.velocity/127).out()
+                    pyo.SfPlayer(soundPath, mul=msg.velocity/127.0).out()
         #Program change
         elif msg.type == 'program_change':
             program_select(msg.program)
@@ -69,4 +92,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         return None
     
     def get_identifier(self):
+        return 'SampleDrumkit'
+    
+    def __str__(self):
         return 'SampleDrumkit'
