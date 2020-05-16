@@ -1,4 +1,4 @@
-import midicube
+import midicube.devices
 import midicube.menu
 import mido
 import fluidsynth
@@ -10,7 +10,7 @@ class SoundFontEntry:
         self.name = name
         self.sfid = sfid
 
-class SynthOutputDevice(midicube.MidiOutputDevice):
+class SynthOutputDevice(midicube.devices.MidiOutputDevice):
     def __init__(self):
         print(fluidsynth)
         self.synth = fluidsynth.Synth(gain=1)
@@ -89,6 +89,9 @@ class SynthOutputDevice(midicube.MidiOutputDevice):
     
     def get_identifier(self):
         return "FluidSynth"
+    
+    def init(self, cube):
+        pass
 
 class SynthSoundFontOption(midicube.menu.MenuOption):
 

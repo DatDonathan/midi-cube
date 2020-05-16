@@ -45,6 +45,10 @@ class MidiOutputDevice(ABC):
     @abstractmethod
     def get_identifier(self):
         return None
+    
+    @abstractmethod
+    def init(self, cube):
+        pass
 
 class PortInputDevice(MidiInputDevice):
 
