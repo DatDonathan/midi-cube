@@ -99,6 +99,10 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
                 self.playing.remove(sf)
 
     def close (self):
+        for sf in self.playing:
+            sf.stop()
+        self.playing.clear()
+        self.server.stop()
         pass
 
     def create_menu(self):
