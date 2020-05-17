@@ -44,6 +44,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         self.drumkits = []
         self.drumkit_index = 0
         self.dir = "/"
+        self.playing = []
     
     def curr_drum(self):
         if self.drumkit_index < len(self.drumkits):
@@ -73,17 +74,29 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         self.drumkit_index = index #TODO Range check
 
     def send (self, msg: mido.Message):
+        print(msg)
         #Note on
         if msg.type == 'note_on':
+            print('Note on')
             drumkit = self.curr_drum()
             if drumkit != None:
+                print('Found drumkit')
                 sound = drumkit.sound(msg.note)
                 if sound != None:
                     soundPath = self.dir + '/' + sound
-                    pyo.SfPlayer(soundPath, mul=msg.velocity/127.0).out()
+                    print(soundPath)
+                    print(msg.velocity/127.0)
+                    sf = pyo.SfPlayer(soundPath).out()
+                    self.playing.append(sf)
+                    print('Playing sound')
         #Program change
         elif msg.type == 'program_change':
             program_select(msg.program)
+        
+        #Clean playing
+        for sf in self.playing:
+            if not sf.isPlaying():
+                self.playing.remove(sf)
 
     def close (self):
         pass
