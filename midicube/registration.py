@@ -31,13 +31,20 @@ class Registration(serialization.Serializable):
     def __init__(self, name: str = 'unnamed'):
         self.name = name
         self.bindings = []
+        self.device_data = {}
     
     def __to_dict__(self):
-        return {'name': self.name, 'bindings': serialization.list_to_dicts(self.bindings)}
+        device_data = {}
+        for key, items in self.device_data.items():
+            device_data[key] = serialization.DynamicSerializableContainer(self.device_data[key])
+        return {'name': self.name, 'bindings': serialization.list_to_dicts(self.bindings), 'device_data': serialization.dict_to_serialized_dict(self.device_data)}
     
     def __from_dict__(dict):
         reg = Registration(dict['name'])
         reg.bindings = serialization.list_from_dicts(dict['bindings'], DeviceBinding)
+        device_data = serialization.dict_from_serialized_dict(dict['device_data'], serialization.DynamicSerializableContainer)
+        for key, value in device_data.items():
+            reg.device_data[key] = device_data[key].serializable
         return reg
     
     def __str__(self):
