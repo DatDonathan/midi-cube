@@ -1,9 +1,42 @@
 import midicube.devices
 import midicube.menu
+import midicube.serialization as serialization
 import mido
 import fluidsynth
 
+class ChannelData(serialization.Serializable):
 
+    def __init__(self, sfid: int = 0, bank: int = 0, program: int = 0):
+        self.sfid = sfid
+        self.bank = bank
+        self.program = program
+    
+    def __to_dict__(self):
+        return {'sfid': self.sfid, 'bank': self.bank, 'program': self.program}
+    
+    def __from_dict__(dict):
+        return ChannelData(dict['sfid'], dict['bank'], dict['program'])
+    
+    
+
+class FluidSynthDeviceData(serialization.Serializable):
+
+    def __init__(self):
+        self.channels = {}
+    
+    def __to_dict__(self):
+        dict = {'channels': {}}
+        for key, value in self.sounds.items():
+            dict['channels'][str(key)] = value.__to_dict__(self)
+        return dict
+    
+    def __from_dict__(dict):
+        data = FluidSynthDeviceData()
+        for key, value in dict['channels'].items():
+            data.channels[int(key)] = ChannelData.__from_dict__(value)
+
+
+#TODO Clean Sound Font system
 class SoundFontEntry:
 
     def __init__(self, name, sfid):
