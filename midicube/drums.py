@@ -73,7 +73,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
     def program_select(self, index):
         self.drumkit_index = index #TODO Range check
 
-    def send (self, msg: mido.Message):
+    def send (self, msg: mido.Message, cube):
         print(msg)
         #Note on
         if msg.type == 'note_on':
@@ -105,7 +105,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         self.server.stop()
         pass
 
-    def create_menu(self):
+    def create_menu(self, cube):
         return None
     
     def get_identifier(self):

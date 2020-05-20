@@ -5,6 +5,7 @@ from midicube.registration import *
 import os
 import os.path
 import json
+import json.decoder
 
 class PersistenceManager():
 
@@ -18,7 +19,10 @@ class PersistenceManager():
         reg_file = self.directory + '/' + self.reg_file
         if os.path.isfile(reg_file):
             with open(reg_file, 'r') as file:
-                cube.reg_mgr.load(json.loads(file.read()))
+                try:
+                    cube.reg_mgr.load(json.loads(file.read()))
+                except json.decoder.JSONDecodeError:
+                    print('Failed to load registrations')
 
     def save(self, cube):
         os.makedirs(self.directory, exist_ok=True)
@@ -61,6 +65,10 @@ class MidiCube:
     def init(self):
         self.pers_mgr.load(self)
         print("Loaded Registrations")
+        def cb(r):
+            for o in self.outputs.values():
+                o.on_reg_change(self)
+        self.reg_mgr.add_listener(cb)
 
     def close (self):
         for key, inport in self.inputs.items():
@@ -99,7 +107,7 @@ class MidiCube:
     def __setup_device_menu(self):
         #Callback
         def enter ():
-            return device.curr_value().create_menu()
+            return device.curr_value().create_menu(self)
         #Options
         device = midicube.menu.ValueMenuOption(enter, "Device", [*self.outputs.values()])
         #Menu

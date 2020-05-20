@@ -15,7 +15,7 @@ class DeviceBinding(serialization.Serializable):
         if outport != None and inport.get_identifier() == self.input_id and (self.input_channel < 0 or msg.channel == self.input_channel):
             if self.output_channel >= 0:
                 msg.channel = self.output_channel
-            outport.send(msg)
+            outport.send(msg, cube)
     
     def __to_dict__(self):
         return {'input_id': self.input_id, 'output_id': self.output_id, 'input_channel': self.input_channel, 'output_channel': self.output_channel}
@@ -32,17 +32,26 @@ class Registration(serialization.Serializable):
         self.name = name
         self.bindings = []
         self.device_data = {}
-    
+
+    def data(self, device: MidiOutputDevice):
+        if not device.get_identifier() in self.device_data:
+            self.device_data[device.get_identifier()] = device.data_type()()
+        print(self.device_data)
+        return self.device_data[device.get_identifier()]
+
     def __to_dict__(self):
         device_data = {}
         for key, items in self.device_data.items():
             device_data[key] = serialization.DynamicSerializableContainer(self.device_data[key])
-        return {'name': self.name, 'bindings': serialization.list_to_dicts(self.bindings), 'device_data': serialization.dict_to_serialized_dict(self.device_data)}
+        print("Self: " + str(self.device_data))
+        print(device_data)
+        return {'name': self.name, 'bindings': serialization.list_to_dicts(self.bindings), 'device_data': serialization.dict_to_serialized_dict(device_data)}
     
     def __from_dict__(dict):
         reg = Registration(dict['name'])
         reg.bindings = serialization.list_from_dicts(dict['bindings'], DeviceBinding)
         device_data = serialization.dict_from_serialized_dict(dict['device_data'], serialization.DynamicSerializableContainer)
+        print(device_data)
         for key, value in device_data.items():
             reg.device_data[key] = device_data[key].serializable
         return reg
@@ -53,11 +62,22 @@ class Registration(serialization.Serializable):
 class RegistrationManager():
 
     def __init__(self):
+        self._listeners = []
         self.registrations = []
-        self.cur_reg = Registration()
+        self._cur_reg = Registration()
+    
+    def add_listener(self, listener: callable):
+        self._listeners.append(listener)
     
     def select(self, reg: Registration):
-        self.cur_reg = copy.deepcopy(reg)
+        if reg != None:
+            self._cur_reg = copy.deepcopy(reg)
+            for l in self._listeners:
+                l(self)
+    
+    @property
+    def cur_reg(self):
+        return self._cur_reg
     
     def save(self):
         return {'registrations': serialization.list_to_dicts(self.registrations)}

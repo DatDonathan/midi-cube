@@ -2,7 +2,7 @@ import mido
 import midicube
 import midicube.menu
 import midicube.console
-import midicube.synth
+import midicube.sfsynth
 import midicube.drums
 import glob
 
@@ -11,7 +11,7 @@ def main ():
     cube = midicube.MidiCube()
     try:
         #Create Synth
-        synth = midicube.synth.SynthOutputDevice()
+        synth = midicube.sfsynth.SynthOutputDevice()
         #Load sf
         for f in glob.glob("sounds/*.sf2"):
             synth.load_sf(f)

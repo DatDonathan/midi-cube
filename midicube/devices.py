@@ -31,7 +31,7 @@ class MidiOutputDevice(ABC):
         pass
     
     @abstractmethod
-    def send (self, msg):
+    def send (self, msg, cube):
         pass
 
     @abstractmethod
@@ -39,7 +39,7 @@ class MidiOutputDevice(ABC):
         pass
 
     @abstractmethod
-    def create_menu(self):
+    def create_menu(self, cube):
         return None
     
     @abstractmethod
@@ -49,6 +49,12 @@ class MidiOutputDevice(ABC):
     @abstractmethod
     def init(self, cube):
         pass
+
+    def on_reg_change(self, cube):
+        pass
+    
+    def data_type(self):
+        return dict
 
 class PortInputDevice(MidiInputDevice):
 
@@ -80,7 +86,7 @@ class PortOutputDevice(MidiOutputDevice):
     def __init__ (self, port):
         self.port = port
     
-    def send (self, msg):
+    def send (self, msg, cube):
         print("Recieved message ", msg)
         self.port.send(msg)
 
@@ -90,7 +96,7 @@ class PortOutputDevice(MidiOutputDevice):
     def __str__(self):
         return self.port.name
 
-    def create_menu(self):
+    def create_menu(self, menu):
         return None
 
     def get_identifier(self):

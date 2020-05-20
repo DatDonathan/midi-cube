@@ -28,7 +28,8 @@ class DynamicSerializableContainer(Serializable):
         className = dict['type']
         moduleName = dict['module']
         clazz = getattr(sys.modules[moduleName], className)
-        return DynamicSerializableContainer(clazz.__from_dict__(dict['data']))
+        serializable = clazz.__from_dict__(dict['data'])
+        return DynamicSerializableContainer(serializable)
 
 def serialize (obj):
     return json.dumps(obj.__to_dict__())
@@ -57,5 +58,5 @@ def dict_to_serialized_dict(dict):
 def dict_from_serialized_dict(serialized, clazz):
     dict = {}
     for key, value in serialized.items():
-        serialized[key] = clazz.__from_dict__(value)
+        dict[key] = clazz.__from_dict__(value)
     return dict
