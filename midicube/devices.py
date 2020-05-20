@@ -76,10 +76,10 @@ class PortInputDevice(MidiInputDevice):
         self.port.close()
 
     def __str__(self):
-        return self.port.name
+        return self.get_identifier()
     
     def get_identifier(self):
-        return self.port.name
+        return self.port.name[:self.port.name.rindex(' ')]
 
 class PortOutputDevice(MidiOutputDevice):
 
@@ -94,13 +94,13 @@ class PortOutputDevice(MidiOutputDevice):
         self.port.close()
         
     def __str__(self):
-        return self.port.name
+        return self.get_identifier()
 
     def create_menu(self, menu):
         return None
 
     def get_identifier(self):
-        return self.port.name
+        return self.port.name[:self.port.name.rindex(' ')]
     
     def init(self, cube):
         pass
