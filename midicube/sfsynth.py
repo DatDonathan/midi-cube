@@ -7,6 +7,7 @@ import fluidsynth
 class ChannelData(serialization.Serializable):
 
     def __init__(self, sfid: int = 0, bank: int = 0, program: int = 0):
+        super().__init__()
         self.sfid = sfid
         self.bank = bank
         self.program = program
@@ -21,6 +22,7 @@ class ChannelData(serialization.Serializable):
 class SoundFontSynthDeviceData(serialization.Serializable):
 
     def __init__(self):
+        super().__init__()
         self.channels = {}
     
     def __to_dict__(self):
@@ -45,13 +47,8 @@ class SoundFontEntry:
 
 class SynthOutputDevice(midicube.devices.MidiOutputDevice):
     def __init__(self):
-        self.synth = fluidsynth.Synth(gain=1)
-        #fluidsynth.fluid_settings_setnum(self.synth.settings, b'synth.audio-period-size', 64)
-        #fluidsynth.fluid_settings_setnum(self.synth.settings, b'synth.audio-periods', 4)
-        fluidsynth.fluid_settings_setstr(self.synth.settings, b'audio.driver', b'jack')
-        fluidsynth.fluid_settings_setint(self.synth.settings, b'audio.jack.autoconnect', 1)
-        self.synth.start('jack')
-        self.soundfonts = []
+        super().__init__()
+        self.synth: fluidsynth.Synth = None
     
     def load_sf(self, file: str):
         sfid = self.synth.sfload(file)
@@ -79,13 +76,13 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
     def curr_sf(self, channel: int):
         return self.soundfonts[self.synth.channel_info(channel)[0] - 1]
 
-    def program_select(self, channel: int, sfid: int, bank: int, program: int, cube=None):
+    def program_select(self, channel: int, sfid: int, bank: int, program: int, save: bool = True):
         self.synth.program_select(channel, sfid, bank, program)
-        if cube != None:
-            data = cube.reg().data(self)
+        if save:
+            data = self.cube.reg().data(self)
             data.channels[channel] = ChannelData(sfid, bank, program)
 
-    def send (self, msg: mido.Message, cube):
+    def send (self, msg: mido.Message):
         print("Recieved message ", msg)
         print(str(self.synth.channel_info(msg.channel)))
         if msg.type == 'note_on':
@@ -94,7 +91,7 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
             self.synth.noteoff(msg.channel, msg.note)
         elif msg.type == 'program_change':
             #TODO Support banks
-            self.program_select(msg.channel, curr_sf(msg.channel), curr_bank(msg.channel), msg.program, None)
+            self.program_select(msg.channel, curr_sf(msg.channel), curr_bank(msg.channel), msg.program)
         elif msg.type == 'control_change':
             self.synth.cc(msg.channel, msg.control, msg.value)
         elif msg.type == 'pitchwheel':
@@ -108,11 +105,11 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
     def __str__ (self):
         return "FluidSynth"
 
-    def create_menu(self, cube):
+    def create_menu(self):
         #Sounds
         def create_sound_menu(channel: int):
             print("opening menu for channel ", str(channel))
-            options = [SynthSoundFontOption(channel, self, cube), SynthBankOption(channel, self, cube), SynthProgramOption(channel, self, cube)]
+            options = [SynthSoundFontOption(channel, self, self.cube), SynthBankOption(channel, self, self.cube), SynthProgramOption(channel, self, self.cube)]
             return midicube.menu.OptionMenu(options)
         
         #Channel
@@ -125,14 +122,19 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
     def get_identifier(self):
         return "FluidSynth"
     
-    def init(self, cube):
-        pass
+    def init(self):
+        self.synth = fluidsynth.Synth(gain=1)
+        fluidsynth.fluid_settings_setstr(self.synth.settings, b'audio.driver', b'jack')
+        fluidsynth.fluid_settings_setint(self.synth.settings, b'audio.jack.autoconnect', 1)
+        self.synth.start('jack')
+        self.soundfonts = []
+        self.on_reg_change()
 
-    def on_reg_change(self, cube):
-        midicube.devices.MidiOutputDevice.on_reg_change(self, cube)
-        data = cube.reg().data(self)
+    def on_reg_change(self):
+        super().on_reg_change()
+        data = self.cube.reg().data(self)
         for channel, sound in data.channels.items():
-            self.program_select(channel, sound.sfid, sound.bank, sound.program, cube)
+            self.program_select(channel, sound.sfid, sound.bank, sound.program)
     
     def data_type(self):
         return SoundFontSynthDeviceData
@@ -140,6 +142,7 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
 class SynthSoundFontOption(midicube.menu.MenuOption):
 
     def __init__(self, channel: int, synth: SynthOutputDevice, cube):
+        super().__init__()
         self.channel = channel
         self.synth = synth
         self.cube = cube
@@ -168,6 +171,7 @@ class SynthSoundFontOption(midicube.menu.MenuOption):
 class SynthProgramOption(midicube.menu.MenuOption):
 
     def __init__(self, channel: int, synth: SynthOutputDevice, cube):
+        super().__init__()
         self.channel = channel
         self.synth = synth
         self.cube = cube
@@ -196,6 +200,7 @@ class SynthProgramOption(midicube.menu.MenuOption):
 class SynthBankOption(midicube.menu.MenuOption):
 
     def __init__(self, channel: int, synth: SynthOutputDevice, cube):
+        super().__init__()
         self.channel = channel
         self.synth = synth
         self.cube = cube

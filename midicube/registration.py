@@ -5,6 +5,7 @@ import copy
 class DeviceBinding(serialization.Serializable):
 
     def __init__(self, input_id: str, output_id: str, input_channel: int = -1, output_channel: int = -1):
+        super().__init__()
         self.input_id = input_id
         self.output_id = output_id
         self.input_channel = input_channel
@@ -15,7 +16,7 @@ class DeviceBinding(serialization.Serializable):
         if outport != None and inport.get_identifier() == self.input_id and (self.input_channel < 0 or msg.channel == self.input_channel):
             if self.output_channel >= 0:
                 msg.channel = self.output_channel
-            outport.send(msg, cube)
+            outport.send(msg)
     
     def __to_dict__(self):
         return {'input_id': self.input_id, 'output_id': self.output_id, 'input_channel': self.input_channel, 'output_channel': self.output_channel}
@@ -29,6 +30,7 @@ class DeviceBinding(serialization.Serializable):
 class Registration(serialization.Serializable):
 
     def __init__(self, name: str = 'unnamed'):
+        super().__init__()
         self.name = name
         self.bindings = []
         self.device_data = {}

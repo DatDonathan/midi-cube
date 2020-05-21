@@ -15,6 +15,7 @@ class Serializable(ABC):
 class DynamicSerializableContainer(Serializable):
 
     def __init__(self, serializable: Serializable):
+        super().__init__()
         self.serializable = serializable
 
     def __to_dict__(self):

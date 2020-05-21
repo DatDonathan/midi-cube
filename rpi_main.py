@@ -4,20 +4,22 @@ import midicube.menu
 import midicube.rpi
 import midicube.sfsynth
 import glob
+import traceback
 
 def main ():
     #Create cube
     cube = midicube.MidiCube()
+    save = True
     try:
         #Create Synth
         synth = midicube.sfsynth.SynthOutputDevice()
+
+        cube.add_output(synth)
         #Load sf
         for f in glob.glob("sounds/*.sf2"):
             synth.load_sf(f)
         #Set up synth (Will be removed later)
         synth.program_select(0, 1, 0, 0)
-
-        cube.add_output(synth)
 
         #Add DrumKit
         drums = midicube.drums.DrumKitOutputDevice()
@@ -36,8 +38,11 @@ def main ():
         view.init()
         print("Enter a key to exit!")
         input()
+    except:
+        save = False
+        traceback.print_exc()
     finally:
-        cube.close()
+        cube.close(save)
         print("Closing ...")
 
 if __name__ == '__main__':

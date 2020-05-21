@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import mido
+import midicube
 import midicube.menu
 
 class MidiListener:
@@ -11,7 +12,18 @@ class MidiListener:
 class MidiInputDevice(ABC):
 
     def __init__ (self):
-        pass
+        self._cube: midicube.MidiCube = None
+    
+    @property
+    def cube(self):
+        return self._cube
+
+    @cube.setter
+    def cube(self, cube):
+        if self._cube == None:
+            self._cube = cube
+        else:
+            raise ValueError('cube is already set')
 
     @abstractmethod
     def add_listener (self, listener: MidiListener):
@@ -28,10 +40,21 @@ class MidiInputDevice(ABC):
 class MidiOutputDevice(ABC):
 
     def __init__ (self):
-        pass
+        self._cube: midicube.MidiCube = None
+    
+    @property
+    def cube(self):
+        return self._cube
+
+    @cube.setter
+    def cube(self, cube):
+        if self._cube == None:
+            self._cube = cube
+        else:
+            raise ValueError('cube is already set')
     
     @abstractmethod
-    def send (self, msg, cube):
+    def send (self, msg):
         pass
 
     @abstractmethod
@@ -39,7 +62,7 @@ class MidiOutputDevice(ABC):
         pass
 
     @abstractmethod
-    def create_menu(self, cube):
+    def create_menu(sel):
         return None
     
     @abstractmethod
@@ -47,10 +70,10 @@ class MidiOutputDevice(ABC):
         return None
     
     @abstractmethod
-    def init(self, cube):
+    def init(self):
         pass
 
-    def on_reg_change(self, cube):
+    def on_reg_change(self):
         pass
     
     def data_type(self):
@@ -59,7 +82,7 @@ class MidiOutputDevice(ABC):
 class PortInputDevice(MidiInputDevice):
 
     def __init__(self, port):
-        super()
+        super().__init__()
         self.port = port
         self.listeners = []
         self.port.callback = self.port_callback
@@ -84,9 +107,10 @@ class PortInputDevice(MidiInputDevice):
 class PortOutputDevice(MidiOutputDevice):
 
     def __init__ (self, port):
+        super().__init__()
         self.port = port
     
-    def send (self, msg, cube):
+    def send (self, msg):
         print("Recieved message ", msg)
         self.port.send(msg)
 
@@ -96,11 +120,11 @@ class PortOutputDevice(MidiOutputDevice):
     def __str__(self):
         return self.get_identifier()
 
-    def create_menu(self, menu):
+    def create_menu(self):
         return None
 
     def get_identifier(self):
         return self.port.name[:self.port.name.rindex(' ')]
     
-    def init(self, cube):
+    def init(self):
         pass

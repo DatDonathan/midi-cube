@@ -42,6 +42,7 @@ class MidiCube:
         return self.reg_mgr.cur_reg
     
     def add_input(self, device: MidiInputDevice):
+        device.cube = self
         self.inputs[device.get_identifier()] = device
         #Add Binding callback
         def callback(msg: mido.Message):
@@ -50,7 +51,8 @@ class MidiCube:
         device.add_listener(MidiListener(-1, callback))
 
     def add_output(self, device: MidiOutputDevice):
-        device.init(self)
+        device.cube = self
+        device.init()
         self.outputs[device.get_identifier()] = device
         print('Added output: ' + device.get_identifier())
     
@@ -67,10 +69,10 @@ class MidiCube:
         print("Loaded Registrations")
         def cb(r):
             for o in self.outputs.values():
-                o.on_reg_change(self)
+                o.on_reg_change()
         self.reg_mgr.add_listener(cb)
 
-    def close (self):
+    def close (self, save=True):
         for key, inport in self.inputs.items():
             try:
                 inport.close()
@@ -81,8 +83,9 @@ class MidiCube:
                 outport.close()
             except:
                 pass
-        self.pers_mgr.save(self)
-        print("Saved registrations!")
+        if save:
+            self.pers_mgr.save(self)
+            print("Saved registrations!")
 
     def create_menu (self):
         #Option list
@@ -107,7 +110,7 @@ class MidiCube:
     def __setup_device_menu(self):
         #Callback
         def enter ():
-            return device.curr_value().create_menu(self)
+            return device.curr_value().create_menu()
         #Options
         device = midicube.menu.ValueMenuOption(enter, "Device", [*self.outputs.values()])
         #Menu

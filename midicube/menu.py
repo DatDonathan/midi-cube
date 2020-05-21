@@ -63,6 +63,7 @@ class MenuOption(ABC):
 class SimpleMenuOption(MenuOption):
 
     def __init__(self, next_menu: callable, title: str, value: str):
+        super().__init__()
         self.next_menu = next_menu
         self.title = title
         self.value = value
@@ -85,6 +86,7 @@ class SimpleMenuOption(MenuOption):
 class ValueMenuOption(MenuOption):
 
     def __init__(self, next_menu: callable, title: str, values):
+        super().__init__()
         self.next_menu = next_menu
         self.title = title
         self.values = values
@@ -117,6 +119,7 @@ class ValueMenuOption(MenuOption):
 class OptionMenu (Menu):
 
     def __init__(self, options=[]):
+        super().__init__()
         self.options = options
         self.option_index = 0
         pass

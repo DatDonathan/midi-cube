@@ -9,6 +9,7 @@ import pathlib
 class DrumKit(serialization.Serializable):
 
     def __init__(self):
+        super().__init__()
         self.sounds = {}
         self.name = 'Drumkit'
         self.dir = '.'
@@ -41,6 +42,7 @@ class DrumKit(serialization.Serializable):
 class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
 
     def __init__(self):
+        super().__init__()
         self.drumkits = []
         self.drumkit_index = 0
         self.dir = "/"
@@ -51,9 +53,9 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
             return self.drumkits[self.drumkit_index]
         return None
 
-    def init(self, cube):
+    def init(self):
         #Load drumkits
-        self.dir = cube.pers_mgr.directory + '/drumkits'
+        self.dir = self.cube.pers_mgr.directory + '/drumkits'
         for f in glob.glob(self.dir + '/*/*.json'):
             print(f)
             path = pathlib.Path(f)
@@ -73,7 +75,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
     def program_select(self, index):
         self.drumkit_index = index #TODO Range check
 
-    def send (self, msg: mido.Message, cube):
+    def send (self, msg: mido.Message):
         print(msg)
         #Note on
         if msg.type == 'note_on':
@@ -105,7 +107,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         self.server.stop()
         pass
 
-    def create_menu(self, cube):
+    def create_menu(self):
         return None
     
     def get_identifier(self):
