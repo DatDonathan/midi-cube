@@ -65,7 +65,7 @@ class RegistrationManager():
 
     def __init__(self):
         self._listeners = []
-        self.registrations = []
+        self.registrations = {}
         self._cur_reg = Registration()
     
     def add_listener(self, listener: callable):
@@ -77,12 +77,15 @@ class RegistrationManager():
             for l in self._listeners:
                 l(self)
     
+    def add_registration(self, reg):
+        self.registrations[reg.name] = reg
+    
     @property
     def cur_reg(self):
         return self._cur_reg
     
     def save(self):
-        return {'registrations': serialization.list_to_dicts(self.registrations)}
+        return {'registrations': serialization.dict_to_serialized_dict(self.registrations)}
     
     def load(self, dict):
-        self.registrations = serialization.list_from_dicts(dict['registrations'], Registration)
+        self.registrations = serialization.dict_from_serialized_dict(dict['registrations'], Registration)

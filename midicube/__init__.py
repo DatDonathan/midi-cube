@@ -133,10 +133,10 @@ class MidiCube:
             self.reg_mgr.select(registration.curr_value())
             return None
         def save_reg():
-            self.reg_mgr.registrations.append(self.reg())
+            self.reg_mgr.add_registration(self.reg())
             return None
         #Options
-        registration = midicube.menu.ValueMenuOption(select_reg, "Select Registration", self.reg_mgr.registrations)
+        registration = midicube.menu.ValueMenuOption(select_reg, "Select Registration", [*self.reg_mgr.registrations.values()])
         save = midicube.menu.SimpleMenuOption(save_reg, "Save Registration", "")
         #Menu
         return midicube.menu.OptionMenu([registration, save])
