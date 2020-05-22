@@ -28,7 +28,7 @@ class PersistenceManager():
         os.makedirs(self.directory, exist_ok=True)
         #Registrations
         with open(self.directory + '/' + self.reg_file, 'w') as file:
-            file.write(json.dumps(cube.reg_mgr.save()))
+            file.write(json.dumps(cube.reg_mgr.save(), indent=4))
 
 class MidiCube:
 
@@ -128,16 +128,35 @@ class MidiCube:
         return midicube.menu.OptionMenu([binding])
     
     def __registration_menu(self):
+        #TODO Refresh menu when registrations are changed
         #Callbacks
         def select_reg():
             self.reg_mgr.select(registration.curr_value())
             return None
-        def save_reg():
-            self.reg_mgr.add_registration(self.reg())
+        def save_reg_menu():
+            reg = self.reg()
+            def save_reg(name):
+                reg.name = name
+                self.reg_mgr.add_registration(reg)
+                return None
+            return midicube.menu.InputMenu(save_reg, "Save as", reg.name)
+        def overwrite_reg_menu():
+            reg = self.reg()
+            def overwrite_name(name):
+                def overwrite_reg(new_name):
+                    del self.reg_mgr.registrations[name]
+                    reg.name = new_name
+                    self.reg_mgr.add_registration(reg)
+                return midicube.menu.InputMenu(overwrite_reg, "New Name", reg.name)
+            return midicube.menu.InputMenu(overwrite_name, "Overwrite", reg.name)
+        def delete_reg():
+            del self.reg_mgr.registrations[self.reg().name]
             return None
         #Options
         registration = midicube.menu.ValueMenuOption(select_reg, "Select Registration", [*self.reg_mgr.registrations.values()])
-        save = midicube.menu.SimpleMenuOption(save_reg, "Save Registration", "")
+        save = midicube.menu.SimpleMenuOption(save_reg_menu, "Save Registration", "")
+        overwrite = midicube.menu.SimpleMenuOption(overwrite_reg_menu, "Overwrite Registration", "")
+        delete = midicube.menu.SimpleMenuOption(delete_reg, "Delete Registration", "")
         #Menu
-        return midicube.menu.OptionMenu([registration, save])
+        return midicube.menu.OptionMenu([registration, save, overwrite, delete])
     

@@ -33,7 +33,7 @@ class DynamicSerializableContainer(Serializable):
         return DynamicSerializableContainer(serializable)
 
 def serialize (obj):
-    return json.dumps(obj.__to_dict__())
+    return json.dumps(obj.__to_dict__(), indent=4)
 
 def deserialize (string: str, clazz):
     return clazz.__from_dict__(json.loads(string))
