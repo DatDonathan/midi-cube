@@ -53,7 +53,8 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
     
     def load_sf(self, file: str):
         sfid = self.synth.sfload(file)
-        self.soundfonts.append(SoundFontEntry(file, sfid))
+        split = file.split('/')
+        self.soundfonts.append(SoundFontEntry(split[len(split) - 1], sfid))
         return sfid
 
     #def select_sf(self, channel: int, sfid: int):
