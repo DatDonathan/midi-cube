@@ -3,6 +3,7 @@ import midicube
 import midicube.menu
 import midicube.rpi
 import midicube.sfsynth
+import midicube.drums
 import traceback
 
 def main ():
