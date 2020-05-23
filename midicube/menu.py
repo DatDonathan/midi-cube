@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 
 class Menu(ABC):
 
-    def __init__(self):
+    def __init__(self, history=False):
+        self._history = history
         pass
 
     @abstractmethod
@@ -35,9 +36,12 @@ class Menu(ABC):
         return None
     
     @property
-    def cursor():
+    def cursor(self):
         return None
-
+    
+    @property
+    def history(self):
+        return self._history
 
 class MenuOption(ABC):
 
@@ -122,8 +126,8 @@ class ValueMenuOption(MenuOption):
 
 class OptionMenu (Menu):
 
-    def __init__(self, options=[]):
-        super().__init__()
+    def __init__(self, options=[], history=False):
+        super().__init__(history=history)
         self.options = options
         self.option_index = 0
         pass
@@ -164,8 +168,8 @@ def chars(start, end):
 
 class InputMenu (Menu):
 
-    def __init__(self, action: callable, title: str, value: str=""):
-        super().__init__()
+    def __init__(self, action: callable, title: str, value: str="", history=False):
+        super().__init__(history=history)
         self.action = action
         self.title = title
         self.value = value.ljust(16)
@@ -241,7 +245,8 @@ class MenuController:
         if (nextm == None):
             self.menu_return()
         else:
-            self.history.append(MenuHistoryEntry(self.menu))
+            if self.menu.history:
+                self.history.append(MenuHistoryEntry(self.menu))
             self.menu = nextm
             self.option_index = 0
 

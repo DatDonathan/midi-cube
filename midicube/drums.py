@@ -68,7 +68,7 @@ class DrumKitDeviceData(serialization.Serializable):
         return dict
     
     def __from_dict__(dict):
-        data = SoundFontSynthDeviceData()
+        data = DrumKitDeviceData()
         for key, value in dict['channels'].items():
             data.channels[int(key)] = ChannelData.__from_dict__(value)
         return data

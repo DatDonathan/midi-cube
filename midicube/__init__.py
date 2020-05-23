@@ -90,7 +90,7 @@ class MidiCube:
     def create_menu (self):
         #Option list
         options = [midicube.menu.SimpleMenuOption(self.__bind_device_menu, "Bind Devices", ""), midicube.menu.SimpleMenuOption(self.__setup_device_menu, "Set Up Devices", ""), midicube.menu.SimpleMenuOption(self.__delete_binding_menu, "Delete Bindings", ""), midicube.menu.SimpleMenuOption(self.__registration_menu, "Registrations", "")]
-        menu = midicube.menu.OptionMenu(options)
+        menu = midicube.menu.OptionMenu(options, history=True)
         return menu
 
     def __bind_device_menu(self):
