@@ -38,22 +38,18 @@ class Registration(serialization.Serializable):
     def data(self, device: MidiOutputDevice):
         if not device.get_identifier() in self.device_data:
             self.device_data[device.get_identifier()] = device.data_type()()
-        print(self.device_data)
         return self.device_data[device.get_identifier()]
 
     def __to_dict__(self):
         device_data = {}
         for key, items in self.device_data.items():
             device_data[key] = serialization.DynamicSerializableContainer(self.device_data[key])
-        print("Self: " + str(self.device_data))
-        print(device_data)
         return {'name': self.name, 'bindings': serialization.list_to_dicts(self.bindings), 'device_data': serialization.dict_to_serialized_dict(device_data)}
     
     def __from_dict__(dict):
         reg = Registration(dict['name'])
         reg.bindings = serialization.list_from_dicts(dict['bindings'], DeviceBinding)
         device_data = serialization.dict_from_serialized_dict(dict['device_data'], serialization.DynamicSerializableContainer)
-        print(device_data)
         for key, value in device_data.items():
             reg.device_data[key] = device_data[key].serializable
         return reg

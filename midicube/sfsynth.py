@@ -107,17 +107,13 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
 
     def create_menu(self):
         #Sounds
-        def create_sound_menu(channel: int):
-            print("opening menu for channel ", str(channel))
-            options = [SynthSoundFontOption(channel, self, self.cube), SynthBankOption(channel, self, self.cube), SynthProgramOption(channel, self, self.cube)]
+        def create_sound_menu():
+            options = [SynthSoundFontOption(channel.curr_value(), self, self.cube), SynthBankOption(channel.curr_value(), self, self.cube), SynthProgramOption(channel.curr_value(), self, self.cube)]
             return midicube.menu.OptionMenu(options)
-        
         #Channel
-        options = []
-        for channel in range(16):
-            options.append(midicube.menu.SimpleMenuOption(lambda ch = channel: create_sound_menu(ch), "Select a Channel", str(channel)))
+        channel = midicube.menu.ValueMenuOption(create_sound_menu, "Select a Channel", [*range(16)])
                 
-        return midicube.menu.OptionMenu(options)
+        return midicube.menu.OptionMenu([channel])
     
     def get_identifier(self):
         return "FluidSynth"

@@ -171,7 +171,6 @@ class InputMenu (Menu):
         self.value = value.ljust(16)
         self._cursor = 0
         self.characters = [' ', *chars('a', 'z'), *chars('A', 'Z'), *chars('0', '9'), '.', ',', ':', ';', '-']
-        print(self.characters)
 
     def get_title(self):
         return self.title

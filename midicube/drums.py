@@ -21,7 +21,6 @@ class DrumKit(serialization.Serializable):
     
     def __from_dict__(dict):
         kit = DrumKit()
-        print(dict)
         kit.name = dict['name']
         sounds = dict['sounds']
         for key, value in sounds.items():
@@ -83,8 +82,11 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         self.dir = "/"
         self.playing = []
     
+    def curr_program(self, channel: int):
+        return self.cube.reg().data(self).channel_info(channel).program
+
     def curr_drum(self, channel: int):
-        drumkit_index = self.cube.reg().data(self).channel_info(channel).program
+        drumkit_index = self.curr_program(channel)
         if drumkit_index >= 0 and drumkit_index < len(self.drumkits):
             return self.drumkits[drumkit_index]
         return None
@@ -93,7 +95,6 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         #Load drumkits
         self.dir = self.cube.pers_mgr.directory + '/drumkits'
         for f in glob.glob(self.dir + '/*/*.json'):
-            print(f)
             path = pathlib.Path(f)
             try:
                 with open(f, 'r') as file:
@@ -102,17 +103,16 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
                     self.drumkits.append(drumkit)
             except IOError:
                 print("Failed to load drumkit ", f, "!")
-        print(self.drumkits)
         #Server
         self.server = pyo.Server(audio='jack').boot()
         self.server.start()
         pass
 
     def program_select(self, channel: int, program: int):
-        self.cube.data(self).channel_info(channel).program = program  #TODO Range check
+        self.cube.reg().data(self).channel_info(channel).program = max(min(len(self.drumkits) - 1, program), 0)   #TODO Range check
 
     def send (self, msg: mido.Message):
-        print(msg)
+        print("Recieved message " + str(msg))
         #Note on
         if msg.type == 'note_on':
             drumkit = self.curr_drum(msg.channel)
@@ -125,7 +125,6 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         #Program change
         elif msg.type == 'program_change':
             program_select(msg.program)
-        
         #Clean playing
         for sf in self.playing:
             if not sf.isPlaying():
@@ -139,7 +138,14 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         pass
 
     def create_menu(self):
-        return None
+        #Sounds
+        def create_sound_menu():
+            options = [DrumKitProgramOption(channel.curr_value(), self)]
+            return midicube.menu.OptionMenu(options)
+        #Channel
+        channel = midicube.menu.ValueMenuOption(create_sound_menu, "Select a Channel", [*range(16)])
+                
+        return midicube.menu.OptionMenu([channel])
     
     def get_identifier(self):
         return 'SampleDrumkit'
@@ -149,3 +155,25 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
     
     def data_type(self):
         return DrumKitDeviceData
+
+class DrumKitProgramOption(midicube.menu.MenuOption):
+
+    def __init__(self, channel: int, drums: DrumKitOutputDevice):
+        super().__init__()
+        self.channel = channel
+        self.drums = drums
+    
+    def enter(self):
+        return None
+
+    def increase(self):
+        self.drums.program_select(self.channel, self.drums.curr_program(self.channel) + 1)
+
+    def decrease(self):
+        self.drums.program_select(self.channel, self.drums.curr_program(self.channel) - 1)
+
+    def get_title(self):
+        return "Select Drumkit"
+
+    def get_value(self):
+        return "(" + str(self.drums.curr_program(self.channel)) + ") " + str(self.drums.curr_drum(self.channel))
