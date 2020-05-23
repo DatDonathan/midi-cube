@@ -9,12 +9,12 @@ class RaspberryPiMenuView:
 
     def __init__(self, controller: midicube.menu.MenuController):
         self.controller = controller
-        self.left_pin = 22
-        self.right_pin = 23
-        self.enter_pin = 18
-        self.return_pin = 17
-        self.increase_pin = 16
-        self.decrease_pin = 20
+        self.left_pin = 17
+        self.enter_pin = 27
+        self.right_pin = 22
+        self.increase_pin = 18
+        self.return_pin = 23
+        self.decrease_pin = 24
     
     def init(self):
         self.lcd = RPLCD.CharLCD(numbering_mode = RPi.GPIO.BCM, cols=16, rows=2, pin_rs=26, pin_e=19, pins_data = [13, 6, 5, 11], auto_linebreaks=False)
