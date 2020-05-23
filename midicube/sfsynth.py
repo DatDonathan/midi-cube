@@ -3,6 +3,7 @@ import midicube.menu
 import midicube.serialization as serialization
 import mido
 import fluidsynth
+import glob
 
 class ChannelData(serialization.Serializable):
 
@@ -119,11 +120,17 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
         return "FluidSynth"
     
     def init(self):
+        #Create Synth
         self.synth = fluidsynth.Synth(gain=1)
         fluidsynth.fluid_settings_setstr(self.synth.settings, b'audio.driver', b'jack')
         fluidsynth.fluid_settings_setint(self.synth.settings, b'audio.jack.autoconnect', 1)
         self.synth.start('jack')
         self.soundfonts = []
+        #Load soundfonts
+        for f in glob.glob(self.cube.pers_mgr.directory + '/soundfonts/*.sf2'):
+            self.load_sf(f)
+        #Set up synth (Will be removed later)
+        self.program_select(0, 1, 0, 0)
         self.on_reg_change()
 
     def on_reg_change(self):

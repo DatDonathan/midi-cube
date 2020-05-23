@@ -4,7 +4,6 @@ import midicube.menu
 import midicube.console
 import midicube.sfsynth
 import midicube.drums
-import glob
 import traceback
 
 def main ():
@@ -14,13 +13,7 @@ def main ():
     try:
         #Create Synth
         synth = midicube.sfsynth.SynthOutputDevice()
-
         cube.add_output(synth)
-        #Load sf
-        for f in glob.glob("sounds/*.sf2"):
-            synth.load_sf(f)
-        #Set up synth (Will be removed later)
-        synth.program_select(0, 1, 0, 0)
 
         #Add DrumKit
         drums = midicube.drums.DrumKitOutputDevice()
