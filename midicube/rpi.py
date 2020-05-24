@@ -22,15 +22,15 @@ class RaspberryPiMenuView:
             func()
             self.lcd.clear()
             #self.lcd.cursor_pos = (0, 0)
-            self.lcd.write_string(self.controller.menu.get_title().center(16)[:16])
+            self.lcd.write_string(self.controller.menu.get_title().center(16)[:15])
             self.lcd.crlf()
             #self.lcd.cursor_pos = (1, 0)
-            self.lcd.write_string(self.controller.menu.get_value().center(16)[:16])
+            self.lcd.write_string(self.controller.menu.get_value().center(16)[:15])
             if self.controller.menu.cursor != None:
                 self.lcd.cursor_pos = (1, self.controller.menu.cursor)
-                self.lcd.cursor_mode = RPLCD.CursorMode.blink
+                self.lcd.cursor_mode = 'blink'
             else:
-                self.lcd.cursor_mode = RPLCD.CursorMode.hide
+                self.lcd.cursor_mode = 'hide'
         self.left_button = gpiozero.Button(self.left_pin)
         self.right_button = gpiozero.Button(self.right_pin)
         self.enter_button = gpiozero.Button(self.enter_pin)
@@ -38,15 +38,15 @@ class RaspberryPiMenuView:
         self.increase_button = gpiozero.Button(self.increase_pin)
         self.decrease_button = gpiozero.Button(self.decrease_pin)
 
-        self.left_button.when_activated = lambda : update_display(lambda : self.controller.scroll_left())
-        self.left_button.when_held = lambda : update_display(lambda : self.controller.scroll_left())
-        self.right_button.when_activated = lambda : update_display(lambda : self.controller.scroll_right())
-        self.right_button.when_held = lambda : update_display(lambda : self.controller.scroll_right())
-        self.enter_button.when_activated = lambda : update_display(lambda : self.controller.enter())
-        self.enter_button.when_held = lambda : update_display(lambda : self.controller.enter())
-        self.return_button.when_activated = lambda : update_display(lambda : self.controller.menu_return())
-        self.return_button.when_held = lambda : update_display(lambda : self.controller.menu_return())
-        self.increase_button.when_activated = lambda : update_display(lambda : self.controller.increase())
-        self.increase_button.when_held = lambda : update_display(lambda : self.controller.increase())
-        self.decrease_button.when_activated = lambda : update_display(lambda : self.controller.decrease())
-        self.decrease_button.when_held = lambda : update_display(lambda : self.controller.decrease())
+        self.left_button.when_pressed = lambda : update_display(lambda : self.controller.scroll_left())
+        #self.left_button.when_held = lambda : update_display(lambda : self.controller.scroll_left())
+        self.right_button.when_pressed = lambda : update_display(lambda : self.controller.scroll_right())
+        #self.right_button.when_held = lambda : update_display(lambda : self.controller.scroll_right())
+        self.enter_button.when_pressed = lambda : update_display(lambda : self.controller.enter())
+        #self.enter_button.when_held = lambda : update_display(lambda : self.controller.enter())
+        self.return_button.when_pressed = lambda : update_display(lambda : self.controller.menu_return())
+        #self.return_button.when_held = lambda : update_display(lambda : self.controller.menu_return())
+        self.increase_button.when_pressed = lambda : update_display(lambda : self.controller.increase())
+        #self.increase_button.when_held = lambda : update_display(lambda : self.controller.increase())
+        self.decrease_button.when_pressed = lambda : update_display(lambda : self.controller.decrease())
+        #self.decrease_button.when_held = lambda : update_display(lambda : self.controller.decrease())
