@@ -4,6 +4,7 @@ import midicube.menu
 import midicube.console
 import midicube.sfsynth
 import midicube.drums
+import midicube.rest
 import traceback
 
 def main ():
@@ -29,12 +30,14 @@ def main ():
         controller = midicube.menu.MenuController(cube.create_menu())
         view = midicube.console.ConsoleMenuView(controller)
 
+        midicube.rest.start_server()
         view.loop()
     except:
         save = False
         traceback.print_exc()
     finally:
         cube.close(save)
+        midicube.rest
         print("Closing ...")
 
 if __name__ == '__main__':
