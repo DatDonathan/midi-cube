@@ -61,6 +61,10 @@ class MidiBuffer(PyoObject):
     def velocity(self):
         return Dummy(self._velocity)
 
+third = 4
+fifth = 7
+octave = 12
+drawbar_offset = [-octave, fifth, 0, octave, octave + fifth, 2 * octave, 2 * octave + third, 2 * octave + fifth, 3 * octave]
 
 class B3OrganDeviceData:
 
@@ -73,8 +77,12 @@ class B3OrganOutputDevice(MidiOutputDevice):
         super().__init__()
 
     def _create_synth(self, midi: MidiBuffer):
-        pitch = MToF(midi.note)
-        return Sine(freq=pitch, mul=Ceil(midi.velocity))
+        sines = []
+        for offset in drawbar_offset:
+            pitch = MToF(midi.note + offset)
+            sine = Sine(freq=pitch, mul=Ceil(midi.velocity) * 1.0/len(drawbar_offset))
+            sines.append(sine)
+        return Mix(sines)
 
     def init(self):
         self.midis = [MidiBuffer(i + 1) for i in range(16)]
