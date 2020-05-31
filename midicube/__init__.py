@@ -2,6 +2,7 @@ import mido
 import midicube.menu
 from midicube.devices import *
 from midicube.registration import *
+from pyo import Server
 import os
 import os.path
 import json
@@ -52,7 +53,6 @@ class MidiCube:
 
     def add_output(self, device: MidiOutputDevice):
         device.cube = self
-        device.init()
         self.outputs[device.get_identifier()] = device
         print('Added output: ' + device.get_identifier())
     
@@ -65,6 +65,14 @@ class MidiCube:
             self.add_output(PortOutputDevice(device))
 
     def init(self):
+        #Boot server
+        self.server = Server(audio='jack')
+        self.server.deactivateMidi()
+        self.server.boot().start()
+        #Init devices
+        for device in self.outputs.values():
+            device.init()
+        #Load Registrations
         self.pers_mgr.load(self)
         print("Loaded Registrations")
         def cb(r):
@@ -86,6 +94,7 @@ class MidiCube:
         if save:
             self.pers_mgr.save(self)
             print("Saved registrations!")
+        self.server.stop()
 
     def create_menu (self):
         #Option list

@@ -4,6 +4,7 @@ import midicube.menu
 import midicube.console
 import midicube.sfsynth
 import midicube.drums
+import midicube.organ
 import midicube.rest
 import traceback
 
@@ -20,6 +21,10 @@ def main ():
         drums = midicube.drums.DrumKitOutputDevice()
         cube.add_output(drums)
 
+        #Add Organ
+        organ = midicube.organ.B3OrganOutputDevice()
+        cube.add_output(organ)
+
         #Load Devices
         cube.load_devices()
 
@@ -30,7 +35,7 @@ def main ():
         controller = midicube.menu.MenuController(cube.create_menu())
         view = midicube.console.ConsoleMenuView(controller)
 
-        midicube.rest.start_server()
+        #midicube.rest.start_server()
         view.loop()
     except:
         save = False

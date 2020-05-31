@@ -103,10 +103,6 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
                     self.drumkits.append(drumkit)
             except IOError:
                 print("Failed to load drumkit ", f, "!")
-        #Server
-        self.server = pyo.Server(audio='jack').boot()
-        self.server.start()
-        pass
 
     def program_select(self, channel: int, program: int):
         self.cube.reg().data(self).channel_info(channel).program = max(min(len(self.drumkits) - 1, program), 0)   #TODO Range check
@@ -134,8 +130,6 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         for sf in self.playing:
             sf.stop()
         self.playing.clear()
-        self.server.stop()
-        pass
 
     def create_menu(self):
         #Sounds
