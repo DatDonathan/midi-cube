@@ -76,13 +76,17 @@ class B3OrganOutputDevice(MidiOutputDevice):
     def __init__ (self):
         super().__init__()
 
+    # Registration-Nr:    1   2   3   4   5   6   7   8   9
+    # Harmonic:           1   3   2   4   6   8   10  12  16
     def _create_synth(self, midi: MidiBuffer):
-        sines = []
-        for offset in drawbar_offset:
-            pitch = MToF(midi.note + offset)
-            sine = Sine(freq=pitch, mul=Ceil(midi.velocity) * 1.0/len(drawbar_offset))
-            sines.append(sine)
-        return Mix(sines)
+        #sines = []
+        #for offset in drawbar_offset:
+        #    pitch = MToF(midi.note + offset)
+        #    sine = Sine(freq=pitch, mul=Ceil(midi.velocity) * 1.0/len(drawbar_offset))
+        #    sines.append(sine)
+        #return Mix(sines)
+        table = HarmTable([1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1])
+        return Osc(table, freq=MToF(midi.note), mul=Ceil(midi.velocity) * 0.8/len(drawbar_offset))
 
     def init(self):
         self.midis = [MidiBuffer(i + 1) for i in range(16)]
