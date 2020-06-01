@@ -16,7 +16,8 @@ class MidiBuffer(PyoObject):
         self._press_times = [0 for i in range(poly)]
         self._note = [Sig(0) for i in range(poly)]
         self._velocity = [Sig(0.0) for i in range(poly)]
-        self._control = [Sig(0) for i in range(127)]
+        #self._control = [Sig(0) for i in range(127)]
+        #self._control_listeners = []
     
     def _find_note_slot(self):
         oldest = None
@@ -39,8 +40,10 @@ class MidiBuffer(PyoObject):
             if self._note[i].value == note:
                 self._velocity[i].value = 0.0
 
-    def control_change(self, control: int, value: int):
-        self._control[control].value = value
+    #def control_change(self, control: int, value: int):
+    #    self._control[control].value = value
+    #    for l in self._control_listeners:
+    #        l(control, value)
     
     def send(self, msg: mido.Message):
         if self._channel == msg.channel + 1 or self._channel == 0:
@@ -51,7 +54,7 @@ class MidiBuffer(PyoObject):
             elif msg.type == 'program_change':
                 pass
             elif msg.type == 'control_change':
-                self.control_change(msg.control, msg.value)
+                #self.control_change(msg.control, msg.value)
                 pass
             elif msg.type == 'pitchwheel':
                 pass
@@ -68,9 +71,13 @@ class MidiBuffer(PyoObject):
     def velocity(self):
         return Dummy(self._velocity)
     
-    @property
-    def control(self):
-        return Dummy(self._control)
+    #@property
+    #def control(self):
+    #    return Dummy(self._control)
+    
+    #@property
+    #def control_listeners(self):
+    #    return self.control_listeners
 
 third = 4
 fifth = 7
@@ -101,7 +108,7 @@ class B3OrganOutputDevice(MidiOutputDevice):
     def __init__ (self):
         super().__init__()
         #TODO: Move to organ data
-        #self.controls = [i for i in range(drawbar_amount)]
+        self.controls = [*[i + 1 for i in range(drawbar_amount - 1)], 8]
     
     def _drawbar_list(self):
         data: B3OrganDeviceData = self.cube.reg().data(self)
@@ -139,8 +146,21 @@ class B3OrganOutputDevice(MidiOutputDevice):
     def send (self, msg: mido.Message):
         #TODO update registration
         print("Recieved message ", msg)
+        #Midi ins
         for midi in self.midis:
             midi.send(msg)
+        #Control change
+        if msg.type == 'control_change':
+            data: B3OrganDeviceData = self.cube.reg().data(self)
+            old_drawbars = deepcopy(data.drawbars)
+            #Update drawbar data
+            for i in range(len(self.controls)):
+                if self.controls[i] == msg.control:
+                    data.drawbars[i] = round(msg.value/127 * 8)
+            if old_drawbars != data.drawbars:
+                print(data.drawbars)
+                self._update_synths()
+                
 
     def close (self):
         for synth in self.synths:
