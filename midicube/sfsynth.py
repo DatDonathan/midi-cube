@@ -140,6 +140,7 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
         for channel, sound in data.channels.items():
             self.program_select(channel, sound.sfid, sound.bank, sound.program)
     
+    @property
     def data_type(self):
         return SoundFontSynthDeviceData
 

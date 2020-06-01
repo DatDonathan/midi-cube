@@ -147,6 +147,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
     def __str__(self):
         return 'SampleDrumkit'
     
+    @property
     def data_type(self):
         return DrumKitDeviceData
 

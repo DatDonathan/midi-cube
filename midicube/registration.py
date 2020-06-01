@@ -37,7 +37,7 @@ class Registration(serialization.Serializable):
 
     def data(self, device: MidiOutputDevice):
         if not device.get_identifier() in self.device_data:
-            self.device_data[device.get_identifier()] = device.data_type()()
+            self.device_data[device.get_identifier()] = device.data_type()
         return self.device_data[device.get_identifier()]
 
     def __to_dict__(self):

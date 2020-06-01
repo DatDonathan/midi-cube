@@ -76,6 +76,7 @@ class MidiOutputDevice(ABC):
     def on_reg_change(self):
         pass
     
+    @property
     def data_type(self):
         return dict
 
