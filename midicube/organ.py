@@ -88,7 +88,7 @@ sound_speed = 343.2
 rotary_horn_radius = 0.15
 rotary_horn_slow = 0.8
 rotary_horn_fast = 6.8
-rotary_bass_radius = 0.05
+rotary_bass_radius = 0.15
 rotary_bass_slow = 0.76
 rotary_bass_fast = 6.5
 
@@ -135,21 +135,21 @@ class B3OrganOutputDevice(MidiOutputDevice):
         #    sines.append(sine)
         #return Mix(sines)
 
-        #Organ
-        table = HarmTable(self._drawbar_list())
-        osc = Osc(table, freq=MToF(midi.note - octave), mul=Port(Ceil(midi.velocity) * 0.8/len(drawbar_offset)))
-
-        #Rotary Speaker
-        bass = Biquad(osc, freq=1500, type=0, mul=0.5)
-        horn = Biquad(osc, freq=1500, type=1, mul=0.5)
-
         bass_rotation = FastSine(freq=rotary_horn_fast, mul=rotary_horn_radius/sound_speed)
         horn_rotation = FastSine(freq=rotary_bass_fast, mul=rotary_bass_radius/sound_speed)
+
+        #Organ
+        table = HarmTable(self._drawbar_list())
+        osc = Osc(table, freq=MToF(midi.note - octave), mul=Port(Ceil(midi.velocity) * (0.5 * 0.8/len(drawbar_offset))))
+
+        #Rotary Speaker
+        bass = Biquad(osc, freq=800, type=0, mul=0.5)
+        horn = Biquad(osc, freq=800, type=1, mul=0.5)
 
         bass_delay = Delay(bass, delay=bass_rotation)
         horn_delay = Delay(horn, delay=horn_rotation)
 
-        return OrganSynth(table, Mix([bass_delay, horn_delay]))
+        return OrganSynth(table, Mix([Chorus(osc), bass_delay, horn_delay]))
     
     def _update_synths(self):
         #TODO channel specific
@@ -159,9 +159,8 @@ class B3OrganOutputDevice(MidiOutputDevice):
 
     def init(self):
         self.midis = [MidiBuffer(i + 1) for i in range(16)]
-        self.synths = [self._create_synth(self.midis[i]) for i in range(16)]
-        for synth in self.synths:
-            synth.osc.out()
+        self.synths = [self._create_synth(self.midis[i]) for i in range(1)]
+        self.synths[0].osc.out()
     
     def send (self, msg: mido.Message):
         #TODO update registration
