@@ -84,6 +84,13 @@ fifth = 7
 octave = 12
 drawbar_offset = [-octave, fifth, 0, octave, octave + fifth, 2 * octave, 2 * octave + third, 2 * octave + fifth, 3 * octave]
 drawbar_amount = 9
+sound_speed = 343.2
+rotary_horn_radius = 0.15
+rotary_horn_slow = 0.8
+rotary_horn_fast = 6.8
+rotary_bass_radius = 0.05
+rotary_bass_slow = 0.76
+rotary_bass_fast = 6.5
 
 #TODO: Information per channel
 class B3OrganDeviceData(serialization.Serializable):
@@ -99,7 +106,7 @@ class B3OrganDeviceData(serialization.Serializable):
 
 class OrganSynth:
 
-    def __init__(self, table: HarmTable, osc: Osc):
+    def __init__(self, table: HarmTable, osc: PyoObject):
         self.table = table
         self.osc = osc
 
@@ -127,9 +134,22 @@ class B3OrganOutputDevice(MidiOutputDevice):
         #    sine = Sine(freq=pitch, mul=Ceil(midi.velocity) * 1.0/len(drawbar_offset))
         #    sines.append(sine)
         #return Mix(sines)
+
+        #Organ
         table = HarmTable(self._drawbar_list())
-        osc = Osc(table, freq=MToF(midi.note - octave), mul=Ceil(midi.velocity) * 0.8/len(drawbar_offset))
-        return OrganSynth(table, osc)
+        osc = Osc(table, freq=MToF(midi.note - octave), mul=Port(Ceil(midi.velocity) * 0.8/len(drawbar_offset)))
+
+        #Rotary Speaker
+        bass = Biquad(osc, freq=1500, type=0, mul=0.5)
+        horn = Biquad(osc, freq=1500, type=1, mul=0.5)
+
+        bass_rotation = FastSine(freq=rotary_horn_fast, mul=rotary_horn_radius/sound_speed)
+        horn_rotation = FastSine(freq=rotary_bass_fast, mul=rotary_bass_radius/sound_speed)
+
+        bass_delay = Delay(bass, delay=bass_rotation)
+        horn_delay = Delay(horn, delay=horn_rotation)
+
+        return OrganSynth(table, Mix([bass_delay, horn_delay]))
     
     def _update_synths(self):
         #TODO channel specific

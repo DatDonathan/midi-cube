@@ -11,3 +11,7 @@ A python programm that can process and forward process midi between devices.
 * RPLCD licensed under the MIT license (https://github.com/dbrgn/RPLCD)
 * Flask licensed under BSD 3-Clause (https://github.com/pallets/flask)
 * lit-html licensed under BSD 3-Clause (https://github.com/Polymer/lit-html)
+
+## Ressources that helped me
+* Papers about the simulation of the rotary effect: https://ccrma.stanford.edu/~jos/doppler/doppler.pdf (even tough I simplified it a lot)
+* https://www.musiker-board.de/threads/leslie-geschwindigkeiten-in-herz-frequenzen-fuer-die-vb3-orgel-gesucht.511349/
