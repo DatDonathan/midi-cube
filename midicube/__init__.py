@@ -79,6 +79,9 @@ class MidiCube:
             for o in self.outputs.values():
                 o.on_reg_change()
         self.reg_mgr.add_listener(cb)
+        #Init devices
+        for device in self.outputs.values():
+            device.on_reg_change()
 
     def close (self, save=True):
         for key, inport in self.inputs.items():

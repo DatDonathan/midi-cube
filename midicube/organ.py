@@ -4,6 +4,7 @@ import mido
 import time
 import midicube.serialization as serialization
 from copy import deepcopy
+from enum import Enum
 
 third = 4
 fifth = 7
@@ -103,26 +104,34 @@ sound_speed = 343.2
 rotary_horn_radius = 0.15
 rotary_horn_slow = 0.8
 rotary_horn_fast = 6.8
-rotary_bass_radius = 0.15
+rotary_bass_radius = 0.05
 rotary_bass_slow = 0.76
 rotary_bass_fast = 6.5
+
+class RotorSpeed(Enum):
+    NONE = 0
+    SLOW = 1
+    FAST = 2
 
 #TODO: Information per channel
 class B3OrganDeviceData(serialization.Serializable):
 
-    def __init__(self, drawbars=[8 for i in range(drawbar_amount)]):
+    def __init__(self, drawbars=[8 for i in range(drawbar_amount)], rotor_speed: RotorSpeed=RotorSpeed.NONE):
         self.drawbars = drawbars
+        self.rotor_speed = rotor_speed
     
     def __from_dict__(dict):
-        return B3OrganDeviceData(deepcopy(dict['drawbars']))
+        return B3OrganDeviceData(deepcopy(dict['drawbars']), RotorSpeed[dict['rotor_speed']])
     
     def __to_dict__(self):
-        return {'drawbars': deepcopy(self.drawbars)}
+        return {'drawbars': deepcopy(self.drawbars), 'rotor_speed': self.rotor_speed.name}
 
-#class OrganSynth:
-#    def __init__(self, table: HarmTable, osc: PyoObject):
-#        self.table = table
-#        self.osc = osc
+class OrganSynth:
+    def __init__(self, osc: PyoObject, drawbars: PyoObject, bass_speed: PyoObject, horn_speed: PyoObject):
+        self.osc = osc
+        self.drawbars = drawbars
+        self.bass_speed = bass_speed
+        self.horn_speed = horn_speed
 
 class B3OrganOutputDevice(MidiOutputDevice):
 
@@ -130,29 +139,52 @@ class B3OrganOutputDevice(MidiOutputDevice):
         super().__init__()
         #TODO: Move to organ data
         self.controls = [*[i + 1 for i in range(drawbar_amount - 1)], 8]
-    
+        self.rotor_control = 9
+        self.rotor_speed_control = 10
+
     def _drawbar_list(self):
         data: B3OrganDeviceData = self.cube.reg().data(self)
         def _db(drawbar: int):
             return data.drawbars[drawbar]/8.0
         #return [_db(0), _db(2), _db(1), _db(3), 0, _db(4), 0, _db(5), 0, _db(6), 0, _db(7), 0, 0, 0, _db(8)]
         return [_db(i) for i in range(drawbar_amount)]
+    
+    def _bass_speed(self):
+        data: B3OrganDeviceData = self.cube.reg().data(self)
+        if data.rotor_speed == RotorSpeed.NONE:
+            return 0
+        elif data.rotor_speed == RotorSpeed.SLOW:
+            return rotary_bass_slow
+        elif data.rotor_speed == RotorSpeed.FAST:
+            return rotary_bass_fast
+
+    def _horn_speed(self):
+        data: B3OrganDeviceData = self.cube.reg().data(self)
+        if data.rotor_speed == RotorSpeed.NONE:
+            return 0
+        elif data.rotor_speed == RotorSpeed.SLOW:
+            return rotary_horn_slow
+        elif data.rotor_speed == RotorSpeed.FAST:
+            return rotary_horn_fast
 
     # Registration-Nr:    1   2   3   4   5   6   7   8   9
     # Harmonic:           1   3   2   4   6   8   10  12  16
     def _create_synth(self, midi: MidiBuffer):
+        drawbar_sigs = [Sig(0) for i in range(drawbar_amount)]
+        bass_speed = Sig(0)
+        horn_speed = Sig(0)
         #Organ
         vel = Ceil(midi.velocity)/drawbar_amount
         sines = []
         for i in range(len(drawbar_offsets)):
             offset = drawbar_offsets[i]
             pitch = MToF(MidiFoldback(midi.note + offset))
-            sine = FastSine(freq=pitch, mul=vel * self.drawbar_sigs[i])
+            sine = FastSine(freq=pitch, mul=vel * drawbar_sigs[i])
             sines.append(sine)
         osc = Mix(sines, mul=0.5)
 
-        bass_rotation = FastSine(freq=rotary_horn_fast, mul=rotary_horn_radius/sound_speed)
-        horn_rotation = FastSine(freq=rotary_bass_fast, mul=rotary_bass_radius/sound_speed)
+        bass_rotation = FastSine(freq=bass_speed, mul=rotary_bass_radius/sound_speed)
+        horn_rotation = FastSine(freq=horn_speed, mul=rotary_horn_radius/sound_speed)
 
         #table = HarmTable(self._drawbar_list())
         #osc = Osc(table, freq=MToF(midi.note - octave), mul=Port(Ceil(midi.velocity) * (0.5 * 0.8/len(drawbar_offsets))))
@@ -164,22 +196,26 @@ class B3OrganOutputDevice(MidiOutputDevice):
         bass_delay = Delay(bass, delay=bass_rotation)
         horn_delay = Delay(horn, delay=horn_rotation)
 
-        return Mix([Chorus(osc), bass_delay, horn_delay])
+        return OrganSynth(Mix([Chorus(osc), bass_delay, horn_delay]), drawbar_sigs, bass_speed, horn_speed)
     
     def _update_synths(self):
         #TODO channel specific
         drawbars = self._drawbar_list()
-        for i in range(drawbar_amount):
-            self.drawbar_sigs[i].value = drawbars[i]
+        bass_speed = self._bass_speed()
+        horn_speed = self._horn_speed()
+        for synth in self.synths:
+            for i in range(drawbar_amount):
+                synth.drawbars[i].value = drawbars[i]
+            synth.bass_speed.value = bass_speed
+            synth.horn_speed.value = horn_speed
         #for synth in self.synths:
         #    synth.table.replace(drawbars)
 
     def init(self):
         #TODO channel specific
-        self.drawbar_sigs = [Sig(0) for i in range(drawbar_amount)]
         self.midis = [MidiBuffer(i + 1) for i in range(16)]
         self.synths = [self._create_synth(self.midis[i]) for i in range(1)]
-        self.synths[0].out()
+        self.synths[0].osc.out()
     
     def send (self, msg: mido.Message):
         #TODO update registration
@@ -195,10 +231,22 @@ class B3OrganOutputDevice(MidiOutputDevice):
             for i in range(len(self.controls)):
                 if self.controls[i] == msg.control:
                     data.drawbars[i] = round(msg.value/127 * 8)
-            if old_drawbars != data.drawbars:
+            #Rotary
+            old_rotor_speed = data.rotor_speed
+            #Stop
+            if msg.control == self.rotor_control:
+                if msg.value == 0:
+                    data.rotor_speed = RotorSpeed.NONE
+            elif msg.control == self.rotor_speed_control:
+                if msg.value == 0:
+                    data.rotor_speed = RotorSpeed.SLOW
+                else:
+                    data.rotor_speed = RotorSpeed.FAST
+            #Speed
+            if old_drawbars != data.drawbars or old_rotor_speed != data.rotor_speed:
                 print(data.drawbars)
+                print(data.rotor_speed)
                 self._update_synths()
-                
 
     def close (self):
         for synth in self.synths:
