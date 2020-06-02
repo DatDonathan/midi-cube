@@ -200,7 +200,7 @@ class B3OrganOutputDevice(MidiOutputDevice):
         bass_delay = Delay(bass, delay=bass_rotation)
         horn_delay = Delay(horn, delay=horn_rotation)
 
-        return OrganSynth(Mix([Chorus(osc), bass_delay, horn_delay]), drawbar_sigs, bass_speed, horn_speed)
+        return OrganSynth(Chorus(Mix([osc, bass_delay, horn_delay]), depth=horn_speed/5), drawbar_sigs, bass_speed, horn_speed)
     
     def _update_synths(self):
         #TODO channel specific
