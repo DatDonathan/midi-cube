@@ -47,6 +47,7 @@ class MidiBuffer(PyoObject):
             elif oldest == None or oldest > self._press_times[i]:
                 oldest_index = i
                 oldest = self._press_times[i]
+        return oldest_index
     
     def note_on(self, note: int, velocity: float):
         slot = self._find_note_slot()
@@ -185,7 +186,7 @@ class B3OrganOutputDevice(MidiOutputDevice):
             pitch = MToF(MidiFoldback(midi.note + offset))
             sine = FastSine(freq=pitch, mul=vel * drawbar_sigs[i])
             sines.append(sine)
-        osc = Mix(sines, mul=0.5)
+        osc = Mix(sines, voices=2, mul=0.5)
 
         bass_rotation = FastSine(freq=Port(bass_speed, risetime=rotary_bass_risetime, falltime=rotary_bass_falltime), mul=rotary_bass_radius/sound_speed)
         horn_rotation = FastSine(freq=Port(horn_speed, risetime=rotary_horn_risetime, falltime=rotary_horn_falltime), mul=rotary_horn_radius/sound_speed)
@@ -200,7 +201,7 @@ class B3OrganOutputDevice(MidiOutputDevice):
         bass_delay = Delay(bass, delay=bass_rotation)
         horn_delay = Delay(horn, delay=horn_rotation)
 
-        return OrganSynth(Chorus(Mix([osc, bass_delay, horn_delay]), depth=horn_speed/5), drawbar_sigs, bass_speed, horn_speed)
+        return OrganSynth(Chorus(Mix([osc, bass_delay, horn_delay], voices=2), depth=horn_speed/5), drawbar_sigs, bass_speed, horn_speed)
     
     def _update_synths(self):
         #TODO channel specific
