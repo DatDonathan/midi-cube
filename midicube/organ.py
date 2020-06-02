@@ -5,6 +5,24 @@ import time
 import midicube.serialization as serialization
 from copy import deepcopy
 
+third = 4
+fifth = 7
+octave = 12
+
+#Adds harmonic foldback to the passed midi notes
+class MidiFoldback(PyoObject):
+
+    def __init__(self, input: PyoObject, cutoff: int=115, mul=1, add=0):
+        super().__init__()
+        self._input = input
+        self._cutoff = cutoff
+        self._fallback = input - Max(Ceil((input - cutoff)/octave), 0) * octave
+        self._base_objs = self._fallback._base_objs
+    
+    @property
+    def cutoff(self):
+        return self._cutoff
+
 #Like Notein, Bendin, etc. but with input from mido devices
 #Channels numbers are all in pyo scale
 class MidiBuffer(PyoObject):
@@ -79,10 +97,7 @@ class MidiBuffer(PyoObject):
     #def control_listeners(self):
     #    return self.control_listeners
 
-third = 4
-fifth = 7
-octave = 12
-drawbar_offset = [-octave, fifth, 0, octave, octave + fifth, 2 * octave, 2 * octave + third, 2 * octave + fifth, 3 * octave]
+drawbar_offsets = [-octave, fifth, 0, octave, octave + fifth, 2 * octave, 2 * octave + third, 2 * octave + fifth, 3 * octave]
 drawbar_amount = 9
 sound_speed = 343.2
 rotary_horn_radius = 0.15
@@ -104,11 +119,10 @@ class B3OrganDeviceData(serialization.Serializable):
     def __to_dict__(self):
         return {'drawbars': deepcopy(self.drawbars)}
 
-class OrganSynth:
-
-    def __init__(self, table: HarmTable, osc: PyoObject):
-        self.table = table
-        self.osc = osc
+#class OrganSynth:
+#    def __init__(self, table: HarmTable, osc: PyoObject):
+#        self.table = table
+#        self.osc = osc
 
 class B3OrganOutputDevice(MidiOutputDevice):
 
@@ -121,26 +135,27 @@ class B3OrganOutputDevice(MidiOutputDevice):
         data: B3OrganDeviceData = self.cube.reg().data(self)
         def _db(drawbar: int):
             return data.drawbars[drawbar]/8.0
-        return [_db(0), _db(2), _db(1), _db(3), 0, _db(4), 0, _db(5), 0, _db(6), 0, _db(7), 0, 0, 0, _db(8)]
+        #return [_db(0), _db(2), _db(1), _db(3), 0, _db(4), 0, _db(5), 0, _db(6), 0, _db(7), 0, 0, 0, _db(8)]
+        return [_db(i) for i in range(drawbar_amount)]
 
     # Registration-Nr:    1   2   3   4   5   6   7   8   9
     # Harmonic:           1   3   2   4   6   8   10  12  16
     def _create_synth(self, midi: MidiBuffer):
-        def _db(drawbar: int, midi: MidiBuffer):
-            return Floor(midi.control[self.controls[drawbar]]*(8/127))/8
-        #sines = []
-        #for offset in drawbar_offset:
-        #    pitch = MToF(midi.note + offset)
-        #    sine = Sine(freq=pitch, mul=Ceil(midi.velocity) * 1.0/len(drawbar_offset))
-        #    sines.append(sine)
-        #return Mix(sines)
+        #Organ
+        vel = Ceil(midi.velocity)/drawbar_amount
+        sines = []
+        for i in range(len(drawbar_offsets)):
+            offset = drawbar_offsets[i]
+            pitch = MToF(MidiFoldback(midi.note + offset))
+            sine = FastSine(freq=pitch, mul=vel * self.drawbar_sigs[i])
+            sines.append(sine)
+        osc = Mix(sines, mul=0.5)
 
         bass_rotation = FastSine(freq=rotary_horn_fast, mul=rotary_horn_radius/sound_speed)
         horn_rotation = FastSine(freq=rotary_bass_fast, mul=rotary_bass_radius/sound_speed)
 
-        #Organ
-        table = HarmTable(self._drawbar_list())
-        osc = Osc(table, freq=MToF(midi.note - octave), mul=Port(Ceil(midi.velocity) * (0.5 * 0.8/len(drawbar_offset))))
+        #table = HarmTable(self._drawbar_list())
+        #osc = Osc(table, freq=MToF(midi.note - octave), mul=Port(Ceil(midi.velocity) * (0.5 * 0.8/len(drawbar_offsets))))
 
         #Rotary Speaker
         bass = Biquad(osc, freq=800, type=0, mul=0.5)
@@ -149,18 +164,22 @@ class B3OrganOutputDevice(MidiOutputDevice):
         bass_delay = Delay(bass, delay=bass_rotation)
         horn_delay = Delay(horn, delay=horn_rotation)
 
-        return OrganSynth(table, Mix([Chorus(osc), bass_delay, horn_delay]))
+        return Mix([Chorus(osc), bass_delay, horn_delay])
     
     def _update_synths(self):
         #TODO channel specific
         drawbars = self._drawbar_list()
-        for synth in self.synths:
-            synth.table.replace(drawbars)
+        for i in range(drawbar_amount):
+            self.drawbar_sigs[i].value = drawbars[i]
+        #for synth in self.synths:
+        #    synth.table.replace(drawbars)
 
     def init(self):
+        #TODO channel specific
+        self.drawbar_sigs = [Sig(0) for i in range(drawbar_amount)]
         self.midis = [MidiBuffer(i + 1) for i in range(16)]
         self.synths = [self._create_synth(self.midis[i]) for i in range(1)]
-        self.synths[0].osc.out()
+        self.synths[0].out()
     
     def send (self, msg: mido.Message):
         #TODO update registration
