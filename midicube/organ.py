@@ -104,9 +104,13 @@ sound_speed = 343.2
 rotary_horn_radius = 0.15
 rotary_horn_slow = 0.8
 rotary_horn_fast = 6.8
+rotary_horn_risetime = 1
+rotary_horn_falltime = 1.6
 rotary_bass_radius = 0.05
 rotary_bass_slow = 0.76
 rotary_bass_fast = 6.5
+rotary_bass_risetime = 5.5
+rotary_bass_falltime = 5.5
 
 class RotorSpeed(Enum):
     NONE = 0
@@ -183,8 +187,8 @@ class B3OrganOutputDevice(MidiOutputDevice):
             sines.append(sine)
         osc = Mix(sines, mul=0.5)
 
-        bass_rotation = FastSine(freq=bass_speed, mul=rotary_bass_radius/sound_speed)
-        horn_rotation = FastSine(freq=horn_speed, mul=rotary_horn_radius/sound_speed)
+        bass_rotation = FastSine(freq=Port(bass_speed, risetime=rotary_bass_risetime, falltime=rotary_bass_falltime), mul=rotary_bass_radius/sound_speed)
+        horn_rotation = FastSine(freq=Port(horn_speed, risetime=rotary_horn_risetime, falltime=rotary_horn_falltime), mul=rotary_horn_radius/sound_speed)
 
         #table = HarmTable(self._drawbar_list())
         #osc = Osc(table, freq=MToF(midi.note - octave), mul=Port(Ceil(midi.velocity) * (0.5 * 0.8/len(drawbar_offsets))))
