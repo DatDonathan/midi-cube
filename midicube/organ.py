@@ -184,7 +184,7 @@ class B3OrganOutputDevice(MidiOutputDevice):
         for i in range(len(drawbar_offsets)):
             offset = drawbar_offsets[i]
             pitch = MToF(MidiFoldback(midi.note + offset))
-            sine = FastSine(freq=pitch, mul=vel * drawbar_sigs[i])
+            sine = FastSine(freq=pitch, mul=vel * drawbar_sigs[i]).mix(1)
             sines.append(sine)
         osc = Mix(sines, voices=2, mul=0.5)
 
@@ -198,8 +198,8 @@ class B3OrganOutputDevice(MidiOutputDevice):
         bass = Biquad(osc, freq=800, type=0, mul=0.5)
         horn = Biquad(osc, freq=800, type=1, mul=0.5)
 
-        bass_delay = Delay(bass, delay=bass_rotation)
-        horn_delay = Delay(horn, delay=horn_rotation)
+        bass_delay = Delay(bass, delay=bass_rotation).mix(1)
+        horn_delay = Delay(horn, delay=horn_rotation).mix(1)
 
         return OrganSynth(Chorus(Mix([osc, bass_delay, horn_delay], voices=2), depth=horn_speed/5), drawbar_sigs, bass_speed, horn_speed)
     
