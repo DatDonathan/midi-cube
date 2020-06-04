@@ -1,0 +1,51 @@
+html, body {
+    margin: 0px;
+    padding: 0px;
+    font-family: serif;
+}
+
+header {
+    width: 100%;
+    padding: 50px;
+    background: #00d4ff;
+}
+
+#logo {
+    font-size: 200%;
+    color: white;
+    font-weight: bold;
+    text-shadow: rgba(100, 100, 100, 0.4) 5px 5px;
+}
+
+nav {
+    display: block;
+    width: 100%;
+    background: whitesmoke;
+    box-shadow: rgba(100, 100, 100, 0.4) 5px 5px;
+}
+
+nav a {
+    display: inline-block;
+    padding: 20 px;
+    border-left:lightgray;
+    border-right: lightgray;
+}
+
+nav a.hover {
+    background: lightgray;
+}
+
+#content {
+    width: 80%;
+    display: block;
+    background: white;
+    padding: 20px;
+    margin: auto
+    border: 1px solid black
+}
+
+footer {
+    background: grey;
+    width: 100%;
+    padding: 10px;
+}
