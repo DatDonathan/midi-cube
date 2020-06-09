@@ -6,6 +6,7 @@ import midicube.sfsynth
 import midicube.drums
 import midicube.organ
 import midicube.rest
+import midicube.synth
 import traceback
 
 def main ():
@@ -24,6 +25,10 @@ def main ():
         #Add Organ
         organ = midicube.organ.B3OrganOutputDevice()
         cube.add_output(organ)
+
+        #Add Synth
+        synth = midicube.synth.SynthOutputDevice()
+        cube.add_output(synth)
 
         #Load Devices
         cube.load_devices()

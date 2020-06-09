@@ -7,4 +7,4 @@ def start_server():
 
 @app.route('/www/<path:path>')
 def static_sites(path):
-    return flask.send_from_directory('../qwww', path)
+    return flask.send_from_directory('../www', path)
