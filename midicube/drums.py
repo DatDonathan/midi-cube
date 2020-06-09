@@ -1,5 +1,6 @@
 import midicube.devices
 import midicube.menu
+import midicube.registration
 import midicube.serialization as serialization
 from pyo import *
 import mido
@@ -50,28 +51,19 @@ class ChannelData(serialization.Serializable):
     def __from_dict__(dict):
         return ChannelData(dict['program'])
 
-class DrumKitDeviceData(serialization.Serializable):
+class DrumKitDeviceData(midicube.registration.AbstractDeviceData):
 
     def __init__(self):
         super().__init__()
-        self.channels = {}
-    
-    def channel_info(self, channel: int):
-        if not channel in self.channels:
-            self.channels[channel] = ChannelData()
-        return self.channels[channel]
-    
-    def __to_dict__(self):
-        dict = {'channels': {}}
-        for key, value in self.channels.items():
-            dict['channels'][str(key)] = value.__to_dict__()
-        return dict
-    
+
     def __from_dict__(dict):
-        data = DrumKitDeviceData()
-        for key, value in dict['channels'].items():
-            data.channels[int(key)] = ChannelData.__from_dict__(value)
-        return data
+        inst = DrumKitDeviceData()
+        inst.__channels_from_dict__(dict)
+        return inst
+    
+    @property
+    def channel_data_type(self):
+        return ChannelData
         
 
 class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
@@ -92,7 +84,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
                 self.sounds[sound] = player
     
     def curr_program(self, channel: int):
-        return self.cube.reg().data(self).channel_info(channel).program
+        return self.cube.reg().data(self).channel_data(channel).program
 
     def curr_drum(self, channel: int):
         drumkit_index = self.curr_program(channel)
@@ -116,7 +108,7 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         self._load_sounds()
 
     def program_select(self, channel: int, program: int):
-        self.cube.reg().data(self).channel_info(channel).program = max(min(len(self.drumkits) - 1, program), 0)   #TODO Range check
+        self.cube.reg().data(self).channel_data(channel).program = max(min(len(self.drumkits) - 1, program), 0)   #TODO Range check
 
     def send (self, msg: mido.Message):
         print("Recieved message " + str(msg))

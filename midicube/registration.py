@@ -1,6 +1,33 @@
 from midicube.devices import *
 import midicube.serialization as serialization
 import copy
+from abc import ABC, abstractmethod
+
+class AbstractDeviceData(serialization.Serializable, ABC):
+
+    def __init__(self):
+        super().__init__()
+        self.channels = {}
+
+    def channel_data(self, channel: int):
+        if not channel in self.channels:
+            self.channels[channel] = self.channel_data_type()
+        return self.channels[channel]
+    
+    def __to_dict__(self):
+        dict = {'channels': {}}
+        for key, value in self.channels.items():
+            dict['channels'][str(key)] = value.__to_dict__()
+        return dict
+    
+    def __channels_from_dict__(self, dict):
+        for key, value in dict['channels'].items():
+            self.channels[int(key)] = self.channel_data_type.__from_dict__(value)
+    
+    @property
+    @abstractmethod
+    def channel_data_type(self):
+        return None
 
 class DeviceBinding(serialization.Serializable):
 

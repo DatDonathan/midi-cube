@@ -1,5 +1,6 @@
 import midicube.devices
 import midicube.menu
+import midicube.registration
 import midicube.serialization as serialization
 import mido
 import fluidsynth
@@ -20,23 +21,19 @@ class ChannelData(serialization.Serializable):
         return ChannelData(dict['sfid'], dict['bank'], dict['program'])
     
 
-class SoundFontSynthDeviceData(serialization.Serializable):
+class SoundFontSynthDeviceData(midicube.registration.AbstractDeviceData):
 
     def __init__(self):
         super().__init__()
-        self.channels = {}
-    
-    def __to_dict__(self):
-        dict = {'channels': {}}
-        for key, value in self.channels.items():
-            dict['channels'][str(key)] = value.__to_dict__()
-        return dict
     
     def __from_dict__(dict):
-        data = SoundFontSynthDeviceData()
-        for key, value in dict['channels'].items():
-            data.channels[int(key)] = ChannelData.__from_dict__(value)
-        return data
+        inst = SoundFontSynthDeviceData()
+        inst.__channels_from_dict__(dict)
+        return inst
+    
+    @property
+    def channel_data_type(self):
+        return ChannelData
 
 
 #TODO Clean Sound Font system
@@ -81,8 +78,10 @@ class SynthOutputDevice(midicube.devices.MidiOutputDevice):
     def program_select(self, channel: int, sfid: int, bank: int, program: int, save: bool = True):
         self.synth.program_select(channel, sfid, bank, program)
         if save:
-            data = self.cube.reg().data(self)
-            data.channels[channel] = ChannelData(sfid, bank, program)
+            data = self.cube.reg().data(self).channel_data(channel)
+            data.sfid = sfid
+            data.bank = bank
+            data.program = program
 
     def send (self, msg: mido.Message):
         print("Recieved message ", msg)
