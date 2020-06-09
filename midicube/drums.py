@@ -1,7 +1,7 @@
 import midicube.devices
 import midicube.menu
 import midicube.serialization as serialization
-import pyo
+from pyo import *
 import mido
 import glob
 import pathlib
@@ -80,7 +80,16 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
         super().__init__()
         self.drumkits = []
         self.dir = "/"
-        self.playing = []
+        self.sounds = {}
+    
+    def _load_sounds(self):
+        for drumkit in self.drumkits:
+            for note in drumkit.sounds:
+                sound = drumkit.sound(note)
+                player = SfPlayer(self.dir + '/' + sound)
+                trig = TrigFunc(player['trig'], lambda : player.stop())
+                player.stop()
+                self.sounds[sound] = player
     
     def curr_program(self, channel: int):
         return self.cube.reg().data(self).channel_info(channel).program
@@ -103,6 +112,8 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
                     self.drumkits.append(drumkit)
             except IOError:
                 print("Failed to load drumkit ", f, "!")
+        #Load sounds
+        self._load_sounds()
 
     def program_select(self, channel: int, program: int):
         self.cube.reg().data(self).channel_info(channel).program = max(min(len(self.drumkits) - 1, program), 0)   #TODO Range check
@@ -115,21 +126,15 @@ class DrumKitOutputDevice(midicube.devices.MidiOutputDevice):
             if drumkit != None:
                 sound = drumkit.sound(msg.note)
                 if sound != None:
-                    soundPath = self.dir + '/' + sound
-                    sf = pyo.SfPlayer(soundPath, mul=msg.velocity/127.0).out()
-                    self.playing.append(sf)
+                    self.sounds[sound].out()
         #Program change
         elif msg.type == 'program_change':
             program_select(msg.program)
-        #Clean playing
-        for sf in self.playing:
-            if not sf.isPlaying():
-                self.playing.remove(sf)
 
     def close (self):
-        for sf in self.playing:
+        for sf in self.sounds.values():
             sf.stop()
-        self.playing.clear()
+        self.sounds.clear()
 
     def create_menu(self):
         #Sounds
