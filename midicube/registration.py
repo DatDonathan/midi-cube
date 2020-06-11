@@ -23,6 +23,7 @@ class AbstractDeviceData(serialization.Serializable, ABC):
     def __channels_from_dict__(self, dict):
         for key, value in dict['channels'].items():
             self.channels[int(key)] = self.channel_data_type.__from_dict__(value)
+        return self
     
     @property
     @abstractmethod
