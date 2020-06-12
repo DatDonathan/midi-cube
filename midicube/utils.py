@@ -1,6 +1,8 @@
 from pyo import *
 import mido
-import time
+import time#
+import midicube.devices
+from midicube.devices import *
 
 #Like Notein, Bendin, etc. but with input from mido devices
 #Channels numbers are all in pyo scale
@@ -76,3 +78,26 @@ class MidiBuffer(PyoObject):
     #@property
     #def control_listeners(self):
     #    return self.control_listeners
+
+class DummyInput(MidiInputDevice):
+
+    def __init__(self, identifier: str):
+        super().__init__()
+        self.listeners = []
+        self.identifier = identifier
+    
+    def send(self, msg: mido.Message):
+        for l in self.listeners:
+            if l.channel <  or l.channel == msg.channel:
+                l.callback(msg)
+
+    def add_listener (self, listener: midicube.devices.MidiListener):
+        self.listeners.append(listener.callback)
+
+    def close (self):
+        pass
+
+    def get_identifier(self):
+        return self.identifier
+
+
