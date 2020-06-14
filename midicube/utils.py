@@ -88,11 +88,11 @@ class DummyInput(MidiInputDevice):
     
     def send(self, msg: mido.Message):
         for l in self.listeners:
-            if l.channel <  or l.channel == msg.channel:
+            if l.channel < 0 or l.channel == msg.channel:
                 l.callback(msg)
 
     def add_listener (self, listener: midicube.devices.MidiListener):
-        self.listeners.append(listener.callback)
+        self.listeners.append(listener)
 
     def close (self):
         pass
