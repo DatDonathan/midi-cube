@@ -32,9 +32,9 @@ def main ():
         cube.add_output(synth)
 
         #Add Looper
-        looper = midicube.looper.LooperOutputDevice()
-        cube.add_input(looper.input)
-        cube.add_output(looper)
+        #looper = midicube.looper.LooperOutputDevice()
+        #cube.add_input(looper.input)
+        #cube.add_output(looper)
 
         #Load Devices
         cube.load_devices()

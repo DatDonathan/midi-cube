@@ -19,11 +19,11 @@ class SynthOutputDevice(MidiOutputDevice):
     # Harmonic:           1   3   2   4   6   8   10  12  16
     def _create_synth(self, midi: MidiBuffer):
         #Detuned Saw sound
-        
-        velocity = MidiAdsr(Ceil(midi.velocity), 0.05, -1, 1.0, 0.2, mul=1/3)
-        osc1 = Osc(LinTable(), freq=MToF(midi.note), mul=velocity).mix(1)
-        osc2 = Osc(LinTable(), freq=MToF(midi.note + 0.1), mul=velocity).mix(1)
-        osc3 = Osc(LinTable(), freq=MToF(midi.note - 0.1), mul=velocity).mix(1)
+        table = SawTable(order=50)
+        velocity = MidiAdsr(Ceil(midi.velocity), 0.001, -1, 1.0, 0.05, mul=1/3)
+        osc1 = Osc(table, freq=MToF(midi.note), mul=velocity).mix(1)
+        osc2 = Osc(table, freq=MToF(midi.note + 0.1), mul=velocity).mix(1)
+        osc3 = Osc(table, freq=MToF(midi.note - 0.1), mul=velocity).mix(1)
         return SynthInstance(Mix([osc1, osc2, osc3], voices=2))
 
     def _update_synths(self):
