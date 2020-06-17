@@ -138,7 +138,7 @@ class LooperOutputDevice(MidiOutputDevice):
             data.last_start = time.clock_gettime_ns(time.CLOCK_BOOTTIME)
         #Create metronome
         trig_env = TrigEnv(self.beat, CosTable(), dur=0.2, mul=self.beat['amp'])
-        self.metronome = FastSine(freq=440, mul=trig_env).out()
+        self.metronome = FastSine(freq=440, mul=trig_env)
         self.beat.store(0)
         print(self.beat.getPresets())
         #Start beat
