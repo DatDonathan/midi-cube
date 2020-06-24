@@ -5,7 +5,6 @@ import midicube.console
 import midicube.sfsynth
 import midicube.drums
 import midicube.organ
-import midicube.rest
 import midicube.synth
 import midicube.looper
 import traceback
@@ -53,7 +52,6 @@ def main ():
         traceback.print_exc()
     finally:
         cube.close(save)
-        midicube.rest
         print("Closing ...")
 
 if __name__ == '__main__':
