@@ -2,7 +2,8 @@
 A python programm that can process and forward process midi between devices.
 
 ---
-**NOTE**
+**NOTE:**
+
 This project is discontinued. I decided to recode everything in C++ and also make a touchscreen UI. The project is currently in active development and can be found here: https://github.com/JonathanDotExe/midi-cube. Furthermore my goals shifted a little from creating a device that can forward MIDI (though I'll maybe make that too one day) to creating a (modular) synthesizer with the DSP parts written myself. I'd happy if you checked it out.
 
 ---
